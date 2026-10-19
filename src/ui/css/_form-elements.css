@@ -182,6 +182,44 @@ option:where(:enabled):hover {
 	background-color: var(--c-background-light);
 }
 
+:is(.pc-suit-input, .jc-suit-input) {
+	color: var(--c-text);
+}
+
+:is(.pc-suit-input, .jc-suit-input) option[value="Clubs"],
+:is(.pc-suit-input, .jc-suit-input) option[value="Clubs"] .icon,
+:is(.pc-suit-input, .jc-suit-input) option[value="Spades"],
+:is(.pc-suit-input, .jc-suit-input) option[value="Spades"] .icon {
+	color: var(--c-text);
+}
+
+:is(.pc-suit-input, .jc-suit-input) option[value="Hearts"],
+:is(.pc-suit-input, .jc-suit-input) option[value="Hearts"] .icon {
+	color: var(--c-suit-hearts);
+}
+
+:is(.pc-suit-input, .jc-suit-input) option[value="Diamonds"],
+:is(.pc-suit-input, .jc-suit-input) option[value="Diamonds"] .icon {
+	color: var(--c-suit-diamonds);
+}
+
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Clubs"],
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Clubs"] .icon,
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Spades"],
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Spades"] .icon {
+	color: var(--c-text);
+}
+
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Hearts"],
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Hearts"] .icon {
+	color: var(--c-suit-hearts);
+}
+
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Diamonds"],
+:is(.pc-suit-input, .jc-suit-input)::picker(select) option[value="Diamonds"] .icon {
+	color: var(--c-suit-diamonds);
+}
+
 /* CHECKBOX */
 
 .checkbox-control {

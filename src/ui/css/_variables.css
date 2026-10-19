@@ -21,6 +21,8 @@ html {
 	--c-red-dark: hsl(9 94% 39%);
 	--c-red-light: hsl(9 94% 53%);
 	--c-red-lighter: hsl(9 94% 60%);
+	--c-suit-hearts: var(--c-red-dark);
+	--c-suit-diamonds: hsl(28 88% 42%);
 	--c-green-dark: hsl(145 94% 30%);
 	--c-green-light: hsl(145 94% 41%);
 	--c-green-lighter: hsl(145 94% 47%);

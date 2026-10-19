@@ -67,10 +67,33 @@ const lightCss = /*css*/`
 		max-inline-size: 5.5rem;
 		font-weight: bold;
 		white-space: nowrap;
+		color: var(--c-text);
 	}
 
 	.pc-suit-input [data-term-label] {
 		white-space: nowrap;
+	}
+
+	playing-card.--suit-Hearts .pc-suit-input selectedcontent,
+	playing-card.--suit-Hearts .pc-suit-input selectedcontent .icon {
+		color: var(--c-suit-hearts);
+	}
+
+	playing-card.--suit-Diamonds .pc-suit-input selectedcontent,
+	playing-card.--suit-Diamonds .pc-suit-input selectedcontent .icon {
+		color: var(--c-suit-diamonds);
+	}
+
+	@media (prefers-contrast: more) {
+		playing-card.--suit-Hearts .pc-suit-input selectedcontent,
+		playing-card.--suit-Hearts .pc-suit-input selectedcontent .icon {
+			color: hsl(0 75% 32%);
+		}
+
+		playing-card.--suit-Diamonds .pc-suit-input selectedcontent,
+		playing-card.--suit-Diamonds .pc-suit-input selectedcontent .icon {
+			color: hsl(28 75% 34%);
+		}
 	}
 
 	.pc-count-input {
@@ -177,6 +200,8 @@ export class PlayingCard extends MovableCard {
 			this.edition = card.edition
 			this.enhancement = card.enhancement
 			this.seal = card.seal
+		} else {
+			this.#syncSuitColorClass()
 		}
 
 		// Allow clicking the card to toggle its played state.
@@ -215,8 +240,17 @@ export class PlayingCard extends MovableCard {
 
 	set suit (suit) {
 		this.#suit = suit
+		this.#syncSuitColorClass()
 
 		this.queueRender()
+	}
+
+	#syncSuitColorClass () {
+		for (const suit of ['Clubs', 'Spades', 'Hearts', 'Diamonds']) {
+			this.classList.remove(`--suit-${suit}`)
+		}
+
+		this.classList.add(`--suit-${this.#suit}`)
 	}
 
 	get edition () {

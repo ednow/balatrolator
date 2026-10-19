@@ -92,6 +92,17 @@ const lightCss = /*css*/`
 
 	.jc-suit-input {
 		inline-size: 8rem;
+		color: var(--c-text);
+	}
+
+	joker-card.--suit-Hearts .jc-suit-input selectedcontent,
+	joker-card.--suit-Hearts .jc-suit-input selectedcontent .icon {
+		color: var(--c-suit-hearts);
+	}
+
+	joker-card.--suit-Diamonds .jc-suit-input selectedcontent,
+	joker-card.--suit-Diamonds .jc-suit-input selectedcontent .icon {
+		color: var(--c-suit-diamonds);
 	}
 
 	.jc-plus-chips-input {
@@ -188,6 +199,8 @@ export class JokerCard extends MovableCard {
 			if (joker.suit) {
 				this.suit = joker.suit
 			}
+		} else {
+			this.#syncSuitColorClass()
 		}
 
 		this.addEventListener('keydown', (event) => {
@@ -287,8 +300,17 @@ export class JokerCard extends MovableCard {
 
 	set suit (suit) {
 		this.#suit = suit
+		this.#syncSuitColorClass()
 
 		this.queueRender()
+	}
+
+	#syncSuitColorClass () {
+		for (const suit of ['Clubs', 'Spades', 'Hearts', 'Diamonds']) {
+			this.classList.remove(`--suit-${suit}`)
+		}
+
+		this.classList.add(`--suit-${this.#suit}`)
 	}
 
 	get active () {
