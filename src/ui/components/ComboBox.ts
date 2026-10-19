@@ -1,6 +1,7 @@
 import { html, render } from 'lit-html'
 
-import { t, term } from '#ui/i18n.ts'
+import { LANGUAGE_CHANGE_EVENT, t, term } from '#ui/i18n.ts'
+import { matchesOption } from './comboBoxFilter.ts'
 import { FormAssociatedElement } from './FormAssociatedElement.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
 
@@ -170,6 +171,20 @@ export class ComboBox extends FormAssociatedElement {
 		this.#options = JSON.parse(optionsScript.textContent.trim()) as string[]
 
 		this.setFormValue(this.value)
+	}
+
+	connectedCallback () {
+		super.connectedCallback()
+		window.addEventListener(LANGUAGE_CHANGE_EVENT, this.#refilterOptions)
+	}
+
+	disconnectedCallback () {
+		window.removeEventListener(LANGUAGE_CHANGE_EVENT, this.#refilterOptions)
+		super.disconnectedCallback()
+	}
+
+	#refilterOptions = () => {
+		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, this.#query))
 	}
 
 	formDisabledCallback (disabled: boolean) {
@@ -406,8 +421,8 @@ export class ComboBox extends FormAssociatedElement {
 					aria-expanded="true"
 					aria-controls="${this.id}-listbox"
 					.ariaActiveDescendantElement="${this.#ariaActiveDescendantElement}"
-					.value="${this.query}"
 					@input="${this.#handleSearchInput}"
+					@compositionend="${this.#handleCompositionEnd}"
 					@keydown="${this.#handleSearchShortcuts}"
 				>
 
@@ -487,22 +502,47 @@ export class ComboBox extends FormAssociatedElement {
 		this.#button!.ariaExpanded = String(isOpen)
 
 		if (isOpen) {
+			this.query = ''
+			queueMicrotask(() => {
+				const input = this.querySelector<HTMLInputElement>('.cb-input')
+				if (input) {
+					input.value = ''
+				}
+			})
+
 			const selectedOptionIndex = this.#filteredOptions.indexOf(this.value)
-			this.#highlightedOptionIndex = selectedOptionIndex
-			const selectedOption = this.#getOptionByIndex(selectedOptionIndex)
+			this.#highlightedOptionIndex = Math.max(0, selectedOptionIndex)
+			const selectedOption = selectedOptionIndex >= 0
+				? this.#getOptionByIndex(selectedOptionIndex)
+				: null
 			if (selectedOption) {
 				scrollIntoViewIfNeeded(selectedOption, this.#optionList!)
 			}
 		}
 	}
 
-	#handleSearchInput = (event: Event) => {
+	#updateSearchQuery = (raw: string) => {
 		this.#highlightedOptionIndex = 0
-		const input = event.target as HTMLInputElement
-		this.query = input.value.trim().toLowerCase()
+		this.query = raw.trim().toLowerCase()
+	}
+
+	#handleSearchInput = (event: Event) => {
+		if (event instanceof InputEvent && event.isComposing) {
+			return
+		}
+
+		this.#updateSearchQuery((event.target as HTMLInputElement).value)
+	}
+
+	#handleCompositionEnd = (event: CompositionEvent) => {
+		this.#updateSearchQuery((event.target as HTMLInputElement).value)
 	}
 
 	#handleSearchShortcuts = (event: KeyboardEvent) => {
+		if (event.isComposing) {
+			return
+		}
+
 		const key = getShortcutKey(event)
 		const command = this.#searchInputCommands[key]
 		if (command) {
@@ -545,10 +585,6 @@ export class ComboBox extends FormAssociatedElement {
 			this.#button.popoverTargetElement.hidePopover()
 		}
 	}
-}
-
-function matchesOption (option: string, query: string) {
-	return option.toLowerCase().includes(query) || term(option).toLowerCase().includes(query)
 }
 
 /**
