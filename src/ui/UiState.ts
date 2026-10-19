@@ -1,11 +1,12 @@
 import { LANGUAGE_CHANGE_EVENT, getLang, t, term } from './i18n.ts'
+import { describeGameState } from './describeGameState.ts'
 import { formatScoreValueForUi } from './scoreLogFormat.ts'
 import { initMobileUi, isMobileUi } from './mobileUi.ts'
 import './components/ComboBox.ts'
 
 import { getState } from '#lib/getState.ts'
 import { calculateScore } from '#lib/calculateScore.ts'
-import { LUCKS } from '#lib/data.ts'
+import { JOKER_DEFINITIONS, LUCKS } from '#lib/data.ts'
 import type { ComboBox } from './components/ComboBox.ts'
 import { HandLevelCard } from './components/HandLevelCard.ts'
 import { JokerCard } from './components/JokerCard.ts'
@@ -107,6 +108,25 @@ let lastScoreResults: Result[] = []
 
 function calculateScoreFromUi (state: State) {
 	return calculateScore(state, { formatScoreValue: formatScoreValueForUi })
+}
+
+async function copyCurrentStateDescription () {
+	const state = readStateFromUi()
+	let hand: HandName | undefined
+	let results: Result[] | undefined
+	if (form.checkValidity()) {
+		const scored = calculateScoreFromUi(state)
+		hand = scored.hand
+		results = scored.results
+	}
+
+	const text = describeGameState(state, hand, results)
+	try {
+		await navigator.clipboard.writeText(text)
+		ariaNotify(t('copyStateSuccess'))
+	} catch {
+		ariaNotify(t('copyStateFailed'))
+	}
 }
 
 for (const resetButton of form.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
@@ -495,6 +515,11 @@ export function init () {
 	initMobileBackGesture()
 	initScoreFab()
 
+	const copyStateButton = document.querySelector<HTMLButtonElement>('[data-copy-state]')
+	copyStateButton?.addEventListener('click', () => {
+		void copyCurrentStateDescription()
+	})
+
 	window.addEventListener(LANGUAGE_CHANGE_EVENT, () => {
 		dateTimeFormat = createDateTimeFormat()
 		populateSavesUi()
@@ -776,17 +801,25 @@ function readStateFromUi (): State {
 	for (const jokerCard of jokerContainer.children) {
 		if (!(jokerCard instanceof JokerCard)) continue
 
-		initialState.jokers.push({
+		const jokerDefinition = JOKER_DEFINITIONS[jokerCard.jokerName]
+		const jokerEntry: InitialJoker = {
 			name: jokerCard.jokerName,
 			edition: jokerCard.edition,
 			plusChips: jokerCard.plusChips,
 			plusMultiplier: jokerCard.plusMultiplier,
 			timesMultiplier: jokerCard.timesMultiplier,
-			rank: jokerCard.rank,
-			suit: jokerCard.suit,
 			active: jokerCard.active,
 			count: jokerCard.count,
-		} satisfies Omit<Required<InitialJoker>, 'index'>)
+		}
+		if (jokerDefinition.hasRankInput) {
+			jokerEntry.rank = jokerCard.rank
+		}
+
+		if (jokerDefinition.hasSuitInput) {
+			jokerEntry.suit = jokerCard.suit
+		}
+
+		initialState.jokers.push(jokerEntry)
 	}
 
 	for (const playingCard of playingCardContainer.children) {

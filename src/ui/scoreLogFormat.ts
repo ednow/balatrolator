@@ -12,13 +12,13 @@ const phaseKey: Record<ScoreValue['phase'], UiKey> = {
 	balancing: 'logPhaseBalancing',
 }
 
-function formatJokerLabel (joker: Joker): string {
+export function formatJokerLabel (joker: Joker): string {
 	const modifiers = joker.edition !== 'Base' ? [termEdition(joker.edition)] : []
 	const suffix = modifiers.length > 0 ? ` (${modifiers.join(', ')})` : ''
 	return `${term(joker.name)}${suffix}`
 }
 
-function formatCardLabel (card: Card): string {
+export function formatCardLabel (card: Card): string {
 	const modifiers = [
 		card.edition !== 'Base' ? termEdition(card.edition) : undefined,
 		card.enhancement !== 'None' ? termEnhancement(card.enhancement) : undefined,
