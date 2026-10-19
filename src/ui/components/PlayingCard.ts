@@ -40,18 +40,37 @@ const lightCss = /*css*/`
 		display: none;
 	}
 
+	playing-card .pc-rank-suit {
+		flex-wrap: nowrap;
+		align-items: center;
+	}
+
+	playing-card .pc-rank-suit > .control-box:has(.pc-rank-input) {
+		flex: 0 0 auto;
+	}
+
+	playing-card .pc-rank-suit > .control-box:has(.pc-suit-input) {
+		flex: 1 1 auto;
+		min-inline-size: 0;
+	}
+
 	.pc-rank-input {
-		inline-size: 5rem;
+		inline-size: auto;
+		min-inline-size: 2.25rem;
+		max-inline-size: 3.25rem;
 		font-weight: bold;
 	}
 
 	.pc-suit-input {
-		inline-size: 8rem;
+		inline-size: auto;
+		min-inline-size: 4.25rem;
+		max-inline-size: 5.5rem;
 		font-weight: bold;
+		white-space: nowrap;
 	}
 
-	.pc-card-of {
-		text-align: center;
+	.pc-suit-input [data-term-label] {
+		white-space: nowrap;
 	}
 
 	.pc-count-input {
@@ -338,7 +357,7 @@ export class PlayingCard extends MovableCard {
 					</button>
 				</div>
 
-				<div class="input-list">
+				<div class="input-list pc-rank-suit">
 					<span id="${this.tagName.toLowerCase()}-${this.uniqueId}-title" class="visually-hidden">${this.toString()}</span>
 
 					<label class="control-box">
@@ -369,8 +388,6 @@ export class PlayingCard extends MovableCard {
 							<option value="2">${term('2')}</option>
 						</select>
 					</label>
-
-					<span class="pc-card-of">${t('of')}</span>
 
 					<label class="control-box">
 						<span class="visually-hidden">${t('suit')}</span>
@@ -435,8 +452,7 @@ export class PlayingCard extends MovableCard {
 					<button
 						class="button --icon push-inline-start"
 						type="button"
-						popovertarget="pc-duplicate-modal"
-						@click="${(event: Event) => this.showDuplicateModal(event)}"
+						@click="${() => this.duplicateInPlace()}"
 					>
 						<span class="visually-hidden">${t('duplicateCard')}</span>
 
@@ -552,12 +568,14 @@ export class PlayingCard extends MovableCard {
 		this.classList[isThePillarBlind ? 'add' : 'remove']('--is-blind-the-pillar')
 	}
 
-	showDuplicateModal = (event: Event) => {
-		const button = event.currentTarget as HTMLButtonElement
-		const dialog = document.querySelector(`dialog[id="${button.getAttribute('popovertarget')}"]`)
-		if (dialog instanceof HTMLDialogElement) {
-			dialog.setAttribute('data-duplicate-target-id', this.id)
-			dialog.showModal()
+	duplicateInPlace () {
+		const copy = this.clone()
+		this.insertAdjacentElement('afterend', copy)
+
+		const blindNameInput = document.querySelector<HTMLElement>('[name="blindName"]')
+		const blindIsActiveCheckbox = document.querySelector<HTMLInputElement>('[name="blindIsActive"]')
+		if (blindNameInput && blindIsActiveCheckbox && 'value' in blindNameInput) {
+			copy.toggleBlindEffects(String(blindNameInput.value) as BlindName, blindIsActiveCheckbox.checked)
 		}
 	}
 

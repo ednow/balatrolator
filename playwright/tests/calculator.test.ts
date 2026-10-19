@@ -216,10 +216,9 @@ test.describe('Jokers', () => {
 	test('can be duplicated', async ({ page }) => {
 		await page.goto('/?state=----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1****0*0*1*2-')
 
-		await page.getByRole('button', { name: /^Duplicate joker$/ }).click()
-		const dialog = page.getByRole('dialog', { name: /^Duplicate joker\?$/ })
-		await dialog.getByRole('spinbutton', { name: /^Number of copies$/ }).fill('2')
-		await dialog.getByRole('button', { name: /^Ok$/ }).click()
+		const jokerCard = page.locator('joker-card')
+		await jokerCard.getByRole('button', { name: /^Duplicate joker$/ }).click()
+		await jokerCard.getByRole('button', { name: /^Duplicate joker$/ }).click()
 		const jokerCards = page.locator('joker-card')
 		await expect(jokerCards).toHaveCount(3)
 		for (const jokerCard of await jokerCards.all()) {

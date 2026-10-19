@@ -87,9 +87,13 @@ html.mobile-ui body.mobile-panel-open {
 	box-shadow: 0 0.2rem 0.65rem hsl(0 0% 0% / 0.18);
 	font-size: 0.9rem;
 	line-height: 1.2;
-	cursor: pointer;
-	touch-action: manipulation;
+	cursor: grab;
+	touch-action: none;
 	user-select: none;
+}
+
+.score-fab:active {
+	cursor: grabbing;
 }
 
 .score-fab--luck-none {

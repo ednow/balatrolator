@@ -10,7 +10,7 @@ import { HandLevelCard } from './components/HandLevelCard.ts'
 import { JokerCard } from './components/JokerCard.ts'
 import { PlayingCard } from './components/PlayingCard.ts'
 import { debounce } from './debounce.ts'
-import { readStateFromUrl, saveStateToUrl } from './Storage.ts'
+import { readStateFromUrl, saveStateToUrl, WebStorage } from './Storage.ts'
 import { SaveManager } from './SaveManager.ts'
 import type { BlindName, Card, DeckName, HandName, InitialState, Joker, State, Result, InitialJoker, InitialCard, Luck } from '#lib/types.ts'
 
@@ -71,8 +71,6 @@ jokerContainer.addEventListener('dblclick', (event) => {
 
 	addJoker()
 })
-const duplicateJokerButton = document.querySelector<HTMLButtonElement>('[data-j-duplicate-button]')!
-duplicateJokerButton.addEventListener('click', (event) => duplicate(event))
 
 const playingCardContainer = form.querySelector<HTMLElement>('[data-c-container]')!
 playingCardContainer.addEventListener('dblclick', (event) => {
@@ -82,8 +80,6 @@ playingCardContainer.addEventListener('dblclick', (event) => {
 
 	addPlayingCard()
 })
-const duplicateCardButton = document.querySelector<HTMLButtonElement>('[data-c-duplicate-button]')!
-duplicateCardButton.addEventListener('click', (event) => duplicate(event))
 
 const scoreCardContainer = form.querySelector<HTMLElement>('[data-sc-container]')!
 const playedHandEl = form.querySelector<HTMLElement>('[data-sc-played-hand]')!
@@ -93,6 +89,16 @@ const scoreFabLuckEl = document.querySelector<HTMLElement>('[data-sc-fab-luck]')
 const scoreFabValueEl = document.querySelector<HTMLElement>('[data-sc-fab-score]')!
 
 const SCORE_FAB_LONG_PRESS_MS = 500
+const SCORE_FAB_MARGIN_PX = 16
+const SCORE_FAB_DRAG_THRESHOLD_PX = 8
+const SCORE_FAB_ANCHOR_STORAGE_KEY = 'score-fab-anchor'
+
+type ScoreFabSide = 'left' | 'right'
+
+interface ScoreFabAnchor {
+	side: ScoreFabSide
+	top: number
+}
 
 let selectedLuck: Luck = 'none'
 let lastScoreHand: HandName = 'High Card'
@@ -157,9 +163,85 @@ function updateScoreFab (result: Result) {
 	scoreFabValueEl.textContent = result.formattedScore
 }
 
-function initScoreFabLongPress () {
+function readScoreFabAnchor (): ScoreFabAnchor | null {
+	try {
+		const stored = WebStorage.get(SCORE_FAB_ANCHOR_STORAGE_KEY)
+		if (stored === null) {
+			return null
+		}
+
+		const parsed = JSON.parse(stored) as ScoreFabAnchor
+		if (parsed.side !== 'left' && parsed.side !== 'right') {
+			return null
+		}
+
+		if (!Number.isFinite(parsed.top)) {
+			return null
+		}
+
+		return parsed
+	} catch {
+		return null
+	}
+}
+
+function storeScoreFabAnchor (anchor: ScoreFabAnchor) {
+	WebStorage.set(SCORE_FAB_ANCHOR_STORAGE_KEY, JSON.stringify(anchor))
+}
+
+function clampScoreFabTop (top: number) {
+	const maxTop = window.innerHeight - scoreFabEl.offsetHeight - SCORE_FAB_MARGIN_PX
+	return Math.min(Math.max(SCORE_FAB_MARGIN_PX, top), maxTop)
+}
+
+function applyScoreFabPosition (side: ScoreFabSide, top: number) {
+	const clampedTop = clampScoreFabTop(top)
+	const left = side === 'left'
+		? SCORE_FAB_MARGIN_PX
+		: window.innerWidth - scoreFabEl.offsetWidth - SCORE_FAB_MARGIN_PX
+
+	scoreFabEl.style.inset = 'auto'
+	scoreFabEl.style.left = `${left}px`
+	scoreFabEl.style.top = `${clampedTop}px`
+	scoreFabEl.style.right = 'auto'
+	scoreFabEl.style.bottom = 'auto'
+	scoreFabEl.dataset.fabSide = side
+
+	storeScoreFabAnchor({ side, top: clampedTop })
+}
+
+function defaultScoreFabAnchor (): ScoreFabAnchor {
+	return {
+		side: 'right',
+		top: window.innerHeight - scoreFabEl.offsetHeight - SCORE_FAB_MARGIN_PX,
+	}
+}
+
+function restoreScoreFabPosition () {
+	if (!isMobileUi()) {
+		return
+	}
+
+	const anchor = readScoreFabAnchor() ?? defaultScoreFabAnchor()
+	applyScoreFabPosition(anchor.side, anchor.top)
+}
+
+function snapScoreFabToSide () {
+	const rect = scoreFabEl.getBoundingClientRect()
+	const centerX = rect.left + rect.width / 2
+	const side: ScoreFabSide = centerX < window.innerWidth / 2 ? 'left' : 'right'
+	applyScoreFabPosition(side, rect.top)
+}
+
+function initScoreFab () {
 	let longPressTimer: ReturnType<typeof setTimeout> | undefined
 	let suppressNextClick = false
+	let dragPointerId: number | undefined
+	let dragStartX = 0
+	let dragStartY = 0
+	let dragOffsetX = 0
+	let dragOffsetY = 0
+	let isDraggingFab = false
 
 	const cancelLongPress = () => {
 		if (longPressTimer !== undefined) {
@@ -167,6 +249,22 @@ function initScoreFabLongPress () {
 			longPressTimer = undefined
 		}
 	}
+
+	const resetDrag = () => {
+		dragPointerId = undefined
+		isDraggingFab = false
+	}
+
+	restoreScoreFabPosition()
+	window.addEventListener('resize', () => {
+		if (!isMobileUi()) {
+			return
+		}
+
+		const side = scoreFabEl.dataset.fabSide === 'left' ? 'left' : 'right'
+		const stored = readScoreFabAnchor()
+		applyScoreFabPosition(side, stored?.top ?? defaultScoreFabAnchor().top)
+	})
 
 	scoreFabEl.addEventListener('pointerdown', (event) => {
 		if (!isMobileUi()) {
@@ -177,18 +275,83 @@ function initScoreFabLongPress () {
 			return
 		}
 
+		const rect = scoreFabEl.getBoundingClientRect()
+		dragPointerId = event.pointerId
+		dragStartX = event.clientX
+		dragStartY = event.clientY
+		dragOffsetX = event.clientX - rect.left
+		dragOffsetY = event.clientY - rect.top
+		isDraggingFab = false
+
 		suppressNextClick = false
 		cancelLongPress()
 		longPressTimer = setTimeout(() => {
 			longPressTimer = undefined
-			suppressNextClick = true
-			cycleSelectedLuck()
+			if (!isDraggingFab) {
+				suppressNextClick = true
+				cycleSelectedLuck()
+			}
 		}, SCORE_FAB_LONG_PRESS_MS)
+
+		scoreFabEl.setPointerCapture(event.pointerId)
 	})
 
-	scoreFabEl.addEventListener('pointerup', cancelLongPress)
-	scoreFabEl.addEventListener('pointercancel', cancelLongPress)
-	scoreFabEl.addEventListener('pointerleave', cancelLongPress)
+	scoreFabEl.addEventListener('pointermove', (event) => {
+		if (dragPointerId !== event.pointerId) {
+			return
+		}
+
+		const deltaX = event.clientX - dragStartX
+		const deltaY = event.clientY - dragStartY
+
+		if (!isDraggingFab && (Math.abs(deltaX) > SCORE_FAB_DRAG_THRESHOLD_PX || Math.abs(deltaY) > SCORE_FAB_DRAG_THRESHOLD_PX)) {
+			isDraggingFab = true
+			cancelLongPress()
+		}
+
+		if (!isDraggingFab) {
+			return
+		}
+
+		const fabWidth = scoreFabEl.offsetWidth
+		const fabHeight = scoreFabEl.offsetHeight
+		const left = Math.min(
+			Math.max(0, event.clientX - dragOffsetX),
+			window.innerWidth - fabWidth,
+		)
+		const top = Math.min(
+			Math.max(0, event.clientY - dragOffsetY),
+			window.innerHeight - fabHeight,
+		)
+
+		scoreFabEl.style.inset = 'auto'
+		scoreFabEl.style.left = `${left}px`
+		scoreFabEl.style.top = `${top}px`
+		scoreFabEl.style.right = 'auto'
+		scoreFabEl.style.bottom = 'auto'
+	})
+
+	const finishPointer = (event: PointerEvent) => {
+		if (dragPointerId !== event.pointerId) {
+			return
+		}
+
+		cancelLongPress()
+
+		if (isDraggingFab) {
+			snapScoreFabToSide()
+			suppressNextClick = true
+		}
+
+		resetDrag()
+
+		if (scoreFabEl.hasPointerCapture(event.pointerId)) {
+			scoreFabEl.releasePointerCapture(event.pointerId)
+		}
+	}
+
+	scoreFabEl.addEventListener('pointerup', finishPointer)
+	scoreFabEl.addEventListener('pointercancel', finishPointer)
 
 	scoreFabEl.addEventListener('click', (event) => {
 		if (!suppressNextClick) {
@@ -304,6 +467,10 @@ function onMobileUiChange () {
 		}
 	}
 
+	if (isMobileUi()) {
+		restoreScoreFabPosition()
+	}
+
 	if (lastScoreResults.length > 0) {
 		renderScoreUi(lastScoreHand, lastScoreResults)
 	}
@@ -321,7 +488,7 @@ export function init () {
 	populateSavesUi()
 	initMobilePanels()
 	initMobileBackGesture()
-	initScoreFabLongPress()
+	initScoreFab()
 
 	window.addEventListener(LANGUAGE_CHANGE_EVENT, () => {
 		dateTimeFormat = createDateTimeFormat()
@@ -683,24 +850,3 @@ function addPlayingCard (card?: Card) {
 	el.toggleBlindEffects(blindNameInput.value as BlindName, blindIsActiveCheckbox.checked)
 }
 
-function duplicate (event: Event) {
-	const button = event.currentTarget as HTMLButtonElement
-	const dialog = button.closest('dialog')!
-	const id = dialog.getAttribute('data-duplicate-target-id') ?? ''
-	const card = document.getElementById(id)
-
-	if (card instanceof JokerCard || card instanceof PlayingCard) {
-		const input = dialog.querySelector('input')!
-		let numberOfCopies = Number(input.value)
-		while (numberOfCopies--) {
-			const copy = card.clone()
-			card.insertAdjacentElement('afterend', copy)
-			if (copy instanceof PlayingCard) {
-				copy.toggleBlindEffects(blindNameInput.value as BlindName, blindIsActiveCheckbox.checked)
-			}
-		}
-	}
-
-	dialog.close()
-	calculate()
-}

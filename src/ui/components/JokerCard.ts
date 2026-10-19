@@ -418,8 +418,7 @@ export class JokerCard extends MovableCard {
 					<button
 						class="button --icon"
 						type="button"
-						popovertarget="jc-duplicate-modal"
-						@click="${(event: Event) => this.showDuplicateModal(event)}"
+						@click="${() => this.duplicateInPlace()}"
 					>
 						<span class="visually-hidden">${t('duplicateJoker')}</span>
 
@@ -581,13 +580,9 @@ export class JokerCard extends MovableCard {
 		`
 	}
 
-	showDuplicateModal = (event: Event) => {
-		const button = event.currentTarget as HTMLButtonElement
-		const dialog = document.querySelector(`dialog[id="${button.getAttribute('popovertarget')}"]`)
-		if (dialog instanceof HTMLDialogElement) {
-			dialog.setAttribute('data-duplicate-target-id', this.id)
-			dialog.showModal()
-		}
+	duplicateInPlace () {
+		const copy = this.clone()
+		this.insertAdjacentElement('afterend', copy)
 	}
 
 	clone () {
