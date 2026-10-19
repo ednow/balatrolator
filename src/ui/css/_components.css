@@ -84,6 +84,26 @@
 	gap: 0.5rem;
 }
 
+.introduction .panel-header {
+	display: flex;
+	inline-size: 100%;
+}
+
+.lang-switch {
+	display: inline flex;
+	gap: 0.25rem;
+	margin-inline-start: auto;
+}
+
+.lang-switch .button {
+	min-block-size: 1.75rem;
+	padding-inline: 0.6rem;
+}
+
+.lang-switch .button[aria-pressed="true"] {
+	border-color: var(--c-text);
+}
+
 .card {
 	padding: 0.25rem;
 	border: 2px solid var(--c-border, transparent);
@@ -119,7 +139,23 @@
 /* ROUND DATA */
 
 .r-observatory-input-list {
-	columns: 3;
+	display: grid;
+	/* Wide enough that the round panel keeps three columns, and hand names stay intact. */
+	grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+	gap: 0.35rem 0.75rem;
+}
+
+.r-observatory-input-list.stack > * + * {
+	margin-block-start: 0;
+}
+
+.r-observatory-input-list .label {
+	min-inline-size: 0;
+	white-space: normal;
+}
+
+.r-observatory-input-list .observatory-hand {
+	white-space: nowrap;
 }
 
 .r-hands-input {

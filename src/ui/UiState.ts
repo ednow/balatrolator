@@ -1,3 +1,4 @@
+import { LANGUAGE_CHANGE_EVENT, getLang, t, term } from './i18n.ts'
 import './components/ComboBox.ts'
 
 import { getState } from '#lib/getState.ts'
@@ -9,17 +10,21 @@ import { PlayingCard } from './components/PlayingCard.ts'
 import { debounce } from './debounce.ts'
 import { readStateFromUrl, saveStateToUrl } from './Storage.ts'
 import { SaveManager } from './SaveManager.ts'
-import type { BlindName, Card, DeckName, HandName, InitialState, Joker, State, Result, InitialJoker, InitialCard } from '#lib/types.ts'
+import type { BlindName, Card, DeckName, HandName, InitialState, Joker, State, Result, InitialJoker, InitialCard, Luck } from '#lib/types.ts'
 
-const dateTimeFormat = new Intl.DateTimeFormat(document.documentElement.lang, {
-	year: 'numeric',
-	month: 'short',
-	day: 'numeric',
-	hour: 'numeric',
-	hour12: false,
-	minute: 'numeric',
-	second: 'numeric',
-})
+function createDateTimeFormat () {
+	return new Intl.DateTimeFormat(document.documentElement.lang, {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		hour12: false,
+		minute: 'numeric',
+		second: 'numeric',
+	})
+}
+
+let dateTimeFormat = createDateTimeFormat()
 
 const saveManager = new SaveManager()
 
@@ -98,6 +103,18 @@ const mutationObserver = new MutationObserver(handleMutation)
 mutationObserver.observe(jokerContainer, { childList: true })
 mutationObserver.observe(playingCardContainer, { childList: true })
 
+function luckLabel (luck: Luck) {
+	if (luck === 'none') {
+		return t('luckNone')
+	}
+
+	if (luck === 'all') {
+		return t('luckAll')
+	}
+
+	return t('luckAverage')
+}
+
 export function init () {
 	saveManager.retrieveStoredSaves()
 
@@ -106,6 +123,16 @@ export function init () {
 	populateUiWithState(state)
 
 	populateSavesUi()
+
+	window.addEventListener(LANGUAGE_CHANGE_EVENT, () => {
+		dateTimeFormat = createDateTimeFormat()
+		populateSavesUi()
+		if (form.checkValidity()) {
+			const current = readStateFromUi()
+			const { hand, results } = calculateScore(current)
+			updateScore(hand, results)
+		}
+	})
 }
 
 function calculate () {
@@ -131,10 +158,19 @@ function populateSavesUi () {
 		const fragment = saveRowTemplate.content.cloneNode(true) as Element
 
 		const nameCell = fragment.querySelector<HTMLTableCellElement>('[data-s-name]')!
-		nameCell.innerHTML = `<b>${save.name}</b>${save.autoSave ? ' <i>(autosave)</>' : ''}`
+		const visibleName = save.autoSave && save.name === 'Current hand' ? t('currentHand') : save.name
+		const name = document.createElement('b')
+		name.textContent = visibleName
+		nameCell.replaceChildren(name)
+		if (save.autoSave) {
+			nameCell.append(' ')
+			const autosave = document.createElement('i')
+			autosave.textContent = `(${t('autosave')})`
+			nameCell.append(autosave)
+		}
 
 		const handCell = fragment.querySelector<HTMLTableCellElement>('[data-s-hand]')!
-		handCell.innerHTML = save.hand
+		handCell.textContent = term(save.hand)
 
 		const scoreCell = fragment.querySelector<HTMLTableCellElement>('[data-s-score]')!
 		const averageResult = save.results.find(({ luck }) => luck === 'average')
@@ -259,7 +295,7 @@ function updateScore (hand: HandName, results: Result[]) {
 		}
 	}
 
-	playedHandEl.textContent = hand
+	playedHandEl.textContent = term(hand)
 
 	scoreCardContainer.innerHTML = ''
 	for (const result of resultsByScore.values()) {
@@ -267,7 +303,7 @@ function updateScore (hand: HandName, results: Result[]) {
 		const fragment = template.content.cloneNode(true) as Element
 
 		const luckEl = fragment.querySelector<HTMLElement>('[data-sc-luck]')!
-		luckEl.textContent = result.luck
+		luckEl.textContent = luckLabel(result.luck)
 
 		const formattedScoreEl = fragment.querySelector<HTMLElement>('[data-sc-formatted-score]')!
 		formattedScoreEl.textContent = result.formattedScore
@@ -282,13 +318,18 @@ function updateScore (hand: HandName, results: Result[]) {
 	const resultArray = Array.from(resultsByScore.values())
 
 	let scoreAnnouncement
+	const handName = term(hand)
 	if (resultArray.length === 3) {
 		const scoreLuckNone = resultArray.at(0)!.formattedScore
 		const scoreLuckAverage = resultArray.at(1)!.formattedScore
 		const scoreLuckAll = resultArray.at(2)!.formattedScore
-		scoreAnnouncement = `${hand} scoring ${scoreLuckAverage} on average, ${scoreLuckAll} in the best case, and ${scoreLuckNone} in the worst case.`
+		scoreAnnouncement = getLang() === 'zh'
+			? `${handName}，平均 ${scoreLuckAverage}，最佳 ${scoreLuckAll}，最差 ${scoreLuckNone}。`
+			: `${hand} scoring ${scoreLuckAverage} on average, ${scoreLuckAll} in the best case, and ${scoreLuckNone} in the worst case.`
 	} else {
-		scoreAnnouncement = `${hand} scoring ${resultArray.at(0)!.formattedScore}.`
+		scoreAnnouncement = getLang() === 'zh'
+			? `${handName}，得分 ${resultArray.at(0)!.formattedScore}。`
+			: `${hand} scoring ${resultArray.at(0)!.formattedScore}.`
 	}
 	debouncedAriaNotify(scoreAnnouncement)
 

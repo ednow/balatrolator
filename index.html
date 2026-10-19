@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-	<title>Balatrolator – Balatro calculator</title>
+	<title>Balatrolator – 小丑牌计分器</title>
 
-	<meta name="description" content="Figure out how best to score by comparing variations of your Balatro hand before playing it." />
+	<meta name="description" content="在出牌前比较不同手牌组合，算出小丑牌里怎么打分更高。" />
 
 	<link rel="icon" href="favicon.ico" sizes="48x48">
 	<link rel="icon" href="icon.svg" sizes="any" type="image/svg+xml">
@@ -18,7 +18,7 @@
 <body>
 	<script type="module">
 		if (window.self !== window.top) {
-			document.body.insertAdjacentHTML('afterbegin', `<p>This website is <b>not</b> the real Balatrolator Balatro calculator. Go to <a href="https://balatrolator.com/">balatrolator.com</a>.</p>`)
+			document.body.insertAdjacentHTML('afterbegin', `<p data-i18n-html="impostor"></p>`)
 			document.querySelector('main')?.remove()
 		}
 	</script>
@@ -34,15 +34,20 @@
 				<div class="introduction panel">
 					<header class="panel-header">
 						<h1>Balatrolator</h1>
+
+						<div class="lang-switch" data-i18n-aria="language">
+							<button class="button" type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+							<button class="button" type="button" data-set-lang="en" aria-pressed="false">English</button>
+						</div>
 					</header>
 
-					<p>Balatrolator is a score calculator for <a href="https://www.playbalatro.com/">Balatro</a>. Go, buy the game!</p>
+					<p data-i18n-html="intro">Balatrolator 是<a href="https://www.playbalatro.com/">小丑牌</a>的计分计算器。去买游戏吧！</p>
 
-					<p>Please, <a href="https://github.com/kleinfreund/balatrolator/issues/new/choose">report any bugs you encounter</a>. Want to <a href="https://github.com/kleinfreund/balatrolator">contribute</a>?</p>
+					<p data-i18n-html="contribute">遇到问题请<a href="https://github.com/kleinfreund/balatrolator/issues/new/choose">反馈</a>。想<a href="https://github.com/kleinfreund/balatrolator">参与贡献</a>？</p>
 
-					<p>Current version: <code>1.0.1o</code></p>
+					<p><span data-i18n="version">当前版本：</span> <code>1.0.1o</code></p>
 
-					<p>Made with love by <a href="https://kleinfreund.de">kleinfreund</a>.</p>
+					<p data-i18n-html="credit">由 <a href="https://kleinfreund.de">kleinfreund</a> 用爱制作。</p>
 
 					<p>
 						<svg class="icon">
@@ -63,21 +68,21 @@
 				<div class="saves panel">
 					<div class="stack">
 						<header class="panel-header">
-							<h2>Saves</h2>
+							<h2 data-i18n="saves">存档</h2>
 						</header>
 
-						<p>The current hand is auto-saved whenever the score updates. Saves are stored in the browser's local storage.</p>
+						<p data-i18n="savesHelp">分数更新时会自动保存当前手牌。存档保存在浏览器的本地存储中。</p>
 
 						<div class="table-wrapper">
 							<table>
-								<caption>Saves</caption>
+								<caption data-i18n="saves">存档</caption>
 								<thead>
 									<tr>
-										<th>Name</th>
-										<th>Hand</th>
-										<th>Score</th>
-										<th>Time</th>
-										<th>Actions</th>
+										<th data-i18n="name">名称</th>
+										<th data-i18n="hand">牌型</th>
+										<th data-i18n="score">分数</th>
+										<th data-i18n="time">时间</th>
+										<th data-i18n="actions">操作</th>
 									</tr>
 								</thead>
 
@@ -88,9 +93,9 @@
 						<form data-s-form>
 							<div class="s-save-container">
 								<label class="s-save-name control-box --flat --grow">
-									<span class="label truncate">Save name</span>
+									<span class="label truncate" data-i18n="saveName">存档名称</span>
 
-									<input class="s-save-name-input text-input" name="name" type="text" required placeholder="Hand 1" autocomplete="off" data-s-name-input>
+									<input class="s-save-name-input text-input" name="name" type="text" required placeholder="手牌 1" autocomplete="off" data-s-name-input data-i18n-placeholder="saveNamePlaceholder">
 								</label>
 
 								<button class="s-save-button button" type="submit" data-s-save-button>
@@ -98,17 +103,17 @@
 										<use xlink:href="#floppy-disk-icon"></use>
 									</svg>
 
-									<span>Save</span>
+									<span data-i18n="save">保存</span>
 								</button>
 							</div>
 						</form>
 
 						<form class="stack" data-s-import-form>
-							<h3>Import save</h3>
+							<h3 data-i18n="importSave">导入存档</h3>
 
 							<div class="s-import-container">
 								<div class="s-import control-box --flat --grow">
-									<label class="visually-hidden" for="import">Import save</label>
+									<label class="visually-hidden" for="import" data-i18n="importSave">导入存档</label>
 
 									<input
 										class="s-import-input file-input"
@@ -121,7 +126,7 @@
 										data-s-import-input
 									>
 
-									<span class="secondary-label" id="import-description">Import any saves you previously exported in JSON format.</span>
+									<span class="secondary-label" id="import-description" data-i18n="importHelp">导入之前导出的 JSON 存档。</span>
 								</div>
 
 								<button class="s-import-button button" type="submit" data-s-import-button>
@@ -129,7 +134,7 @@
 										<use xlink:href="#file-arrow-up-icon"></use>
 									</svg>
 
-									<span>Import</span>
+									<span data-i18n="import">导入</span>
 								</button>
 							</div>
 						</form>
@@ -141,7 +146,7 @@
 				<div class="form__hands panel">
 					<div class="stack">
 						<header class="panel-header">
-							<h2>Levels</h2>
+							<h2 data-i18n="levels">等级</h2>
 						</header>
 
 						<div class="stack" data-h-container></div>
@@ -151,28 +156,28 @@
 				<div class="form__round panel">
 					<div class="stack">
 						<header class="panel-header">
-							<h2>Round data</h2>
+							<h2 data-i18n="roundData">回合数据</h2>
 						</header>
 
 						<div class="list">
 							<div class="card-stack">
 								<div class="card round-data-card">
 									<div class="r-hands control-box --flat --grow">
-										<label class="label truncate" for="hands">Hands</label>
+										<label class="label truncate" for="hands" data-i18n="hands">出牌</label>
 
 										<input class="r-hands-input text-input" id="hands" name="hands" type="number" min="0" value="0" aria-describedby="hands-description">
 
-										<span class="secondary-label" id="hands-description">Influences: Acrobat</span>
+										<span class="secondary-label" id="hands-description" data-influences="Acrobat">影响：杂技演员</span>
 									</div>
 								</div>
 
 								<div class="card round-data-card">
 									<div class="r-discards control-box --flat --grow">
-										<label class="label truncate" for="discards">Discards</label>
+										<label class="label truncate" for="discards" data-i18n="discards">弃牌</label>
 
 										<input class="r-discards-input text-input" id="discards" name="discards" type="number" min="0" value="0" aria-describedby="discards-description">
 
-										<span class="secondary-label" id="discards-description">Influences: Banner, Mystic Summit</span>
+										<span class="secondary-label" id="discards-description" data-influences="Banner,Mystic Summit">影响：旗帜、神秘之峰</span>
 									</div>
 								</div>
 							</div>
@@ -180,18 +185,18 @@
 							<div class="card-stack">
 								<div class="card round-data-card">
 									<div class="r-money control-box --flat --grow">
-										<label class="label truncate" for="money">Money</label>
+										<label class="label truncate" for="money" data-i18n="money">资金</label>
 
 										<input class="r-money-input text-input" id="money" name="money" type="number" value="0" aria-describedby="money-description">
 
-										<span class="secondary-label" id="money-description">Influences: Bull, Bootstraps</span>
+										<span class="secondary-label" id="money-description" data-influences="Bull,Bootstraps">影响：斗牛、提靴带</span>
 									</div>
 								</div>
 
 								<div class="card round-data-card">
 									<div class="stack">
 										<div class="r-blind-name control-box --flat --grow">
-											<label class="label truncate" for="blindName">Blind</label>
+											<label class="label truncate" for="blindName" data-i18n="blind">盲注</label>
 
 											<combo-box
 												class="r-blind-name-input"
@@ -199,20 +204,23 @@
 												name="blindName"
 												value="Small Blind"
 												options-json="blindNamesJson"
-												button-label="Show blind options"
-												input-label="Filter blinds"
-												listbox-label="Blinds"
+												button-label="显示盲注选项"
+												input-label="筛选盲注"
+												listbox-label="盲注"
+												data-i18n-button-label="showBlindOptions"
+												data-i18n-input-label="filterBlinds"
+												data-i18n-listbox-label="blinds"
 												aria-describedby="blindName-description"
 											></combo-box>
 
-											<span class="secondary-label" id="blindName-description">Influences: Debuffed cards, scoring</span>
+											<span class="secondary-label" id="blindName-description" data-i18n="influencesDebuffed">影响：被削弱的牌、计分</span>
 										</div>
 
 										<label class="r-blind-is-active checkbox-control">
 											<input class="r-blind-is-active-input" name="blindIsActive" type="checkbox" value="is-active" checked>
 
-											<span class="label" aria-hidden="true">Active?</span>
-											<span class="visually-hidden">Blind active</span>
+											<span class="label" aria-hidden="true" data-i18n="activeShort">激活？</span>
+											<span class="visually-hidden" data-i18n="blindActive">盲注已激活</span>
 										</label>
 									</div>
 								</div>
@@ -221,7 +229,7 @@
 							<div class="card-stack">
 								<div class="card round-data-card">
 									<div class="r-deck control-box --flat --grow">
-										<label class="label truncate" for="deck">Deck</label>
+										<label class="label truncate" for="deck" data-i18n="deck">牌组</label>
 
 										<combo-box
 											class="r-deck-input"
@@ -229,78 +237,81 @@
 											name="deck"
 											value="Red Deck"
 											options-json="decksJson"
-											button-label="Show deck options"
-											input-label="Filter decks"
-											listbox-label="Decks"
+											button-label="显示牌组选项"
+											input-label="筛选牌组"
+											listbox-label="牌组"
+											data-i18n-button-label="showDeckOptions"
+											data-i18n-input-label="filterDecks"
+											data-i18n-listbox-label="decks"
 											aria-describedby="deck-description"
 										></combo-box>
 
-										<span class="secondary-label" id="deck-description">Influences: Scoring with Plasma Deck</span>
+										<span class="secondary-label" id="deck-description" data-i18n="influencesPlasma">影响：等离子牌组的计分</span>
 									</div>
 								</div>
 
 								<div class="card round-data-card">
 									<div class="r-joker-slots control-box --flat --grow">
-										<label class="label truncate" for="jokerSlots">Joker slots</label>
+										<label class="label truncate" for="jokerSlots" data-i18n="jokerSlots">小丑牌槽位</label>
 
 										<input class="r-joker-slots-input text-input" id="jokerSlots" name="jokerSlots" type="number" value="5" aria-describedby="jokerSlots-description">
 
-										<span class="secondary-label" id="jokerSlots-description">Influences: Joker Stencil</span>
+										<span class="secondary-label" id="jokerSlots-description" data-influences="Joker Stencil">影响：模具小丑</span>
 									</div>
 								</div>
 							</div>
 
 							<div class="card round-data-card observatory-card">
 								<fieldset class="stack">
-									<legend><span class="label truncate">Observatory</span></legend>
+									<legend><span class="label truncate" data-i18n="observatory">天文台</span></legend>
 
 									<div class="r-observatory-input-list stack">
 										<label class="control-box --flat">
-											<span class="label truncate">Pluto</span>
+											<span class="label"><span data-term="Pluto">冥王星</span><span class="observatory-hand" data-term-paren="High Card">（高牌）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="High Card">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Mercury</span>
+											<span class="label"><span data-term="Mercury">水星</span><span class="observatory-hand" data-term-paren="Pair">（对子）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Pair">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Uranus</span>
+											<span class="label"><span data-term="Uranus">天王星</span><span class="observatory-hand" data-term-paren="Two Pair">（两对）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Two Pair">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Venus</span>
+											<span class="label"><span data-term="Venus">金星</span><span class="observatory-hand" data-term-paren="Three of a Kind">（三条）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Three of a Kind">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Saturn</span>
+											<span class="label"><span data-term="Saturn">土星</span><span class="observatory-hand" data-term-paren="Straight">（顺子）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Straight">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Jupiter</span>
+											<span class="label"><span data-term="Jupiter">木星</span><span class="observatory-hand" data-term-paren="Flush">（同花）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Flush">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Earth</span>
+											<span class="label"><span data-term="Earth">地球</span><span class="observatory-hand" data-term-paren="Full House">（葫芦）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Full House">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Mars</span>
+											<span class="label"><span data-term="Mars">火星</span><span class="observatory-hand" data-term-paren="Four of a Kind">（四条）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Four of a Kind">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Neptune</span>
+											<span class="label"><span data-term="Neptune">海王星</span><span class="observatory-hand" data-term-paren="Straight Flush">（同花顺）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Straight Flush">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Planet X</span>
+											<span class="label"><span data-term="Planet X">X行星</span><span class="observatory-hand" data-term-paren="Five of a Kind">（五条）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Five of a Kind">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Ceres</span>
+											<span class="label"><span data-term="Ceres">谷神星</span><span class="observatory-hand" data-term-paren="Flush House">（同花葫芦）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Flush House">
 										</label>
 										<label class="control-box --flat">
-											<span class="label truncate">Eris</span>
+											<span class="label"><span data-term="Eris">阋神星</span><span class="observatory-hand" data-term-paren="Flush Five">（同花五条）</span></span>
 											<input class="r-observatory-input text-input" type="number" min="0" value="0" data-r-observatory-hand="Flush Five">
 										</label>
 									</div>
@@ -313,10 +324,10 @@
 				<div class="form__jokers panel">
 					<div class="stack">
 						<header class="panel-header">
-							<h2>Jokers</h2>
+							<h2 data-i18n="jokers">小丑</h2>
 
 							<button class="add-joker-button button --icon" type="button" data-j-add-button>
-								<span class="visually-hidden">Add joker</span>
+								<span class="visually-hidden" data-i18n="addJoker">添加小丑</span>
 
 								<svg class="icon">
 									<use xlink:href="#plus-icon"></use>
@@ -331,10 +342,10 @@
 				<div class="form__cards panel">
 					<div class="stack">
 						<header class="panel-header">
-							<h2>Hand</h2>
+							<h2 data-i18n="cards">手牌</h2>
 
 							<button class="add-card-button button --icon" type="button" data-c-add-button>
-								<span class="visually-hidden">Add card</span>
+								<span class="visually-hidden" data-i18n="addCard">添加卡牌</span>
 
 								<svg class="icon">
 									<use xlink:href="#plus-icon"></use>
@@ -349,19 +360,19 @@
 				<div class="form__score panel">
 					<div class="stack">
 						<header class="panel-header">
-							<h2>Score</h2>
+							<h2 data-i18n="score">分数</h2>
 
 							<button class="button" type="button" data-sc-reset-button>
 								<svg class="icon">
 									<use xlink:href="#broom-icon"></use>
 								</svg>
 
-								Reset current hand
+								<span data-i18n="resetHand">重置当前手牌</span>
 							</button>
 						</header>
 
 						<div class="stack">
-							<p>Hand: <b data-sc-played-hand>—</b></p>
+							<p><span data-i18n="playedHand">牌型：</span><b data-sc-played-hand>—</b></p>
 
 							<div class="list" data-sc-container></div>
 						</div>
@@ -370,7 +381,7 @@
 
 				<div class="form__log panel">
 					<header class="panel-header">
-						<h2>Log</h2>
+						<h2 data-i18n="log">记录</h2>
 					</header>
 
 					<pre class="log" data-sc-log></pre>
@@ -383,10 +394,10 @@
 		<div class="stack">
 			<header>
 				<div class="action-list">
-					<h2 id="jc-duplicate-modal-heading">Duplicate joker?</h2>
+					<h2 id="jc-duplicate-modal-heading" data-i18n="duplicateJokerQuestion">复制小丑？</h2>
 
 					<button class="button --icon push-inline-start" type="button" data-modal-close-button>
-						<span class="visually-hidden">Close</span>
+						<span class="visually-hidden" data-i18n="close">关闭</span>
 
 						<svg class="icon">
 							<use xlink:href="#close-icon"></use>
@@ -396,14 +407,14 @@
 			</header>
 
 			<label class="control-box">
-				<span class="label truncate">Number of copies</span>
+				<span class="label truncate" data-i18n="numberOfCopies">复制数量</span>
 
 				<input class="text-input" type="number" value="1" min="1">
 			</label>
 
-			<p>The new cards will be added to the right of the one you're duplicating.</p>
+			<p data-i18n="duplicateHint">新卡牌会添加在所复制卡牌的右侧。</p>
 
-			<button class="button" type="button" data-j-duplicate-button>Ok</button>
+			<button class="button" type="button" data-j-duplicate-button data-i18n="ok">确定</button>
 		</div>
 	</dialog>
 
@@ -411,10 +422,10 @@
 		<div class="stack">
 			<header>
 				<div class="action-list">
-					<h2 id="pc-duplicate-modal-heading">Duplicate card?</h2>
+					<h2 id="pc-duplicate-modal-heading" data-i18n="duplicateCardQuestion">复制卡牌？</h2>
 
 					<button class="button --icon push-inline-start" type="button" data-modal-close-button>
-						<span class="visually-hidden">Close</span>
+						<span class="visually-hidden" data-i18n="close">关闭</span>
 
 						<svg class="icon">
 							<use xlink:href="#close-icon"></use>
@@ -424,14 +435,14 @@
 			</header>
 
 			<label class="control-box">
-				<span class="label truncate">Number of copies</span>
+				<span class="label truncate" data-i18n="numberOfCopies">复制数量</span>
 
 				<input class="text-input" type="number" value="1" min="1">
 			</label>
 
-			<p>The new cards will be added to the right of the one you're duplicating.</p>
+			<p data-i18n="duplicateHint">新卡牌会添加在所复制卡牌的右侧。</p>
 
-			<button class="button" type="button" data-c-duplicate-button>Ok</button>
+			<button class="button" type="button" data-c-duplicate-button data-i18n="ok">确定</button>
 		</div>
 	</dialog>
 
@@ -443,18 +454,18 @@
 			<td class="time-cell" data-s-time></td>
 			<td class="actions-cell">
 				<div class="action-list">
-					<button class="button" type="button" data-s-load-button>Load</button>
+					<button class="button" type="button" data-s-load-button data-i18n="load">读取</button>
 
 					<button class="s-export-button button --icon" type="submit" data-s-export-button>
 						<svg class="icon">
 							<use xlink:href="#file-arrow-down-icon"></use>
 						</svg>
 
-						<span class="visually-hidden">Export</span>
+						<span class="visually-hidden" data-i18n="export">导出</span>
 					</button>
 
 					<button class="s-delete-button button --icon" type="button" data-s-delete-button>
-						<span class="visually-hidden">Delete save</span>
+						<span class="visually-hidden" data-i18n="deleteSave">删除存档</span>
 
 						<svg class="icon">
 							<use xlink:href="#trash-icon"></use>
@@ -470,7 +481,7 @@
 			<div class="stack">
 				<p><b data-sc-formatted-score></b></p>
 				<pre class="exact-score" data-sc-score></pre>
-				<span class="badge">Luck: <b data-sc-luck></b></span>
+				<span class="badge"><span data-i18n="luckLabel">运气：</span><b data-sc-luck></b></span>
 			</div>
 		</div>
 	</template>

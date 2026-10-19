@@ -1,5 +1,6 @@
 import { html, render } from 'lit-html'
 
+import { t, term } from '#ui/i18n.ts'
 import { FormAssociatedElement } from './FormAssociatedElement.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
 
@@ -267,7 +268,7 @@ export class ComboBox extends FormAssociatedElement {
 
 	set query (query) {
 		this.#query = query
-		this.#_filteredOptions = this.#options.filter((option) => option.toLowerCase().includes(query))
+		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, query))
 
 		this.queueRender()
 	}
@@ -278,7 +279,7 @@ export class ComboBox extends FormAssociatedElement {
 
 	set #options (options) {
 		this.#_options = options
-		this.#_filteredOptions = options.filter((option) => option.toLowerCase().includes(this.query))
+		this.#_filteredOptions = options.filter((option) => matchesOption(option, this.query))
 
 		this.queueRender()
 	}
@@ -383,7 +384,7 @@ export class ComboBox extends FormAssociatedElement {
 				popovertarget="${this.id}-popover"
 				@keydown="${this.#handleButtonShortcuts}"
 			>
-				${this.value}
+				${term(this.value)}
 				<svg class="icon">
 					<use xlink:href="#caret-down-icon"></use>
 				</svg>
@@ -435,14 +436,14 @@ export class ComboBox extends FormAssociatedElement {
 											</svg>`
 											: ''
 									}
-									${option}
+									${term(option)}
 								</button>
 							`
 						})}
 				</div>
 
 				<div class="cb-empty">
-					<p>No matches</p>
+					<p>${t('noMatches')}</p>
 				</div>
 			</div>
 		`
@@ -544,6 +545,10 @@ export class ComboBox extends FormAssociatedElement {
 			this.#button.popoverTargetElement.hidePopover()
 		}
 	}
+}
+
+function matchesOption (option: string, query: string) {
+	return option.toLowerCase().includes(query) || term(option).toLowerCase().includes(query)
 }
 
 /**

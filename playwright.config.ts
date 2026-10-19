@@ -11,6 +11,20 @@ export default defineConfig({
 	retries: process.env.CI ? 1 : 0,
 	use: {
 		baseURL: `http://localhost:${PORT}`,
+		storageState: {
+			cookies: [],
+			origins: [
+				{
+					origin: `http://localhost:${PORT}`,
+					localStorage: [
+						{
+							name: 'balatrolator-lang',
+							value: 'en',
+						},
+					],
+				},
+			],
+		},
 		trace: 'on-first-retry',
 		launchOptions: {
 			args: ['--auto-open-devtools-for-tabs'],

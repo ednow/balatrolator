@@ -1,6 +1,7 @@
 import { html } from 'lit-html'
 
 import type { HandLevel, HandName } from '#lib/types.ts'
+import { t, term } from '#ui/i18n.ts'
 import { BaseElement } from './BaseElement.ts'
 
 const lightCss = /*css*/`
@@ -83,14 +84,14 @@ export class HandLevelCard extends BaseElement {
 	template () {
 		return html`
 			<fieldset class="stack">
-				<legend>${this.handName}</legend>
+				<legend>${term(this.handName)}</legend>
 
 				<div class="stack">
 					<div class="input-list">
 						<label class="control-box --flat --grow">
 							<span class="label">
-								<span aria-hidden="true">lvl</span>
-								<span class="visually-hidden">Level</span>
+								<span aria-hidden="true">${t('levelShort')}</span>
+								<span class="visually-hidden">${t('level')}</span>
 							</span>
 
 							<input
@@ -108,8 +109,8 @@ export class HandLevelCard extends BaseElement {
 
 						<label class="hlc-plays control-box --flat --grow">
 							<span class="label">
-								<span aria-hidden="true">#</span>
-								<span class="visually-hidden">Number of plays</span>
+								<span aria-hidden="true">${t('playsShort')}</span>
+								<span class="visually-hidden">${t('numberOfPlays')}</span>
 							</span>
 
 							<input

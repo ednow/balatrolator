@@ -1,5 +1,6 @@
 import { html, render } from 'lit-html'
 
+import { LANGUAGE_CHANGE_EVENT, term, termSeal } from '#ui/i18n.ts'
 import { uniqueId } from '#ui/uniqueId.ts'
 
 export class BaseElement extends HTMLElement {
@@ -15,6 +16,10 @@ export class BaseElement extends HTMLElement {
 	 */
 	#updateCount = 0
 
+	#onLanguageChange = () => {
+		this.queueRender()
+	}
+
 	constructor () {
 		super()
 
@@ -22,11 +27,17 @@ export class BaseElement extends HTMLElement {
 	}
 
 	connectedCallback () {
+		window.addEventListener(LANGUAGE_CHANGE_EVENT, this.#onLanguageChange)
+
 		if (!this.isConnected) {
 			return
 		}
 
 		this.render()
+	}
+
+	disconnectedCallback () {
+		window.removeEventListener(LANGUAGE_CHANGE_EVENT, this.#onLanguageChange)
 	}
 
 	get uniqueId () {
@@ -78,6 +89,10 @@ export class BaseElement extends HTMLElement {
 		}
 
 		render(this.template(), this)
+		for (const el of this.querySelectorAll<HTMLElement>('[data-term-label]')) {
+			const label = el.dataset.termLabel ?? ''
+			el.textContent = el.dataset.termKind === 'seal' ? termSeal(label) : term(label)
+		}
 	}
 
 	template () {

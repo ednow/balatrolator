@@ -18,6 +18,8 @@ export class MovableCard extends BaseElement {
 	}
 
 	connectedCallback () {
+		super.connectedCallback()
+
 		if (!this.isConnected) {
 			return
 		}
@@ -36,6 +38,8 @@ export class MovableCard extends BaseElement {
 	}
 
 	disconnectedCallback () {
+		super.disconnectedCallback()
+
 		if (this.#container) {
 			registeredContainers.delete(this.#container)
 			this.#container.removeEventListener('dragenter', this.#handleDragOver)

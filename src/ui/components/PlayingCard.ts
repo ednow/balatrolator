@@ -1,6 +1,7 @@
 import { html } from 'lit-html'
 
 import type { BlindName, Card, Edition, Enhancement, Rank, Seal, Suit } from '#lib/types.ts'
+import { getLang, t, term, termEdition, termEnhancement, termSeal } from '#ui/i18n.ts'
 import { MovableCard } from './MovableCard.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
 
@@ -256,22 +257,17 @@ export class PlayingCard extends MovableCard {
 
 	toString () {
 		const modifiers = [
-			this.edition !== 'Base' ? this.edition : undefined,
-			this.enhancement !== 'None' ? this.enhancement : undefined,
-			this.seal !== 'None' ? this.seal : undefined,
+			this.edition !== 'Base' ? termEdition(this.edition) : undefined,
+			this.enhancement !== 'None' ? termEnhancement(this.enhancement) : undefined,
+			this.seal !== 'None' ? termSeal(this.seal) : undefined,
 		].filter((modifier) => modifier !== undefined)
+		const modifierText = modifiers.length > 0 ? ` (${modifiers.join(', ')})` : ''
 
-		return `Card ${this.index + 1}: ${this.rank} of ${this.suit}` + (modifiers.length > 0 ? ` (${modifiers.join(', ')})` : '')
-	}
-
-	connectedCallback () {
-		super.connectedCallback()
-
-		if (!this.isConnected) {
-			return
+		if (getLang() === 'zh') {
+			return `卡牌 ${this.index + 1}：${term(this.suit)}${term(this.rank)}${modifierText}`
 		}
 
-		this.render()
+		return `Card ${this.index + 1}: ${this.rank} of ${this.suit}${modifierText}`
 	}
 
 	template () {
@@ -284,7 +280,7 @@ export class PlayingCard extends MovableCard {
 						type="button"
 						@click="${this.swapLeft}"
 					>
-						<span class="visually-hidden">Move card left</span>
+						<span class="visually-hidden">${t('moveCardLeft')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#arrow-left-icon"></use>
@@ -304,7 +300,7 @@ export class PlayingCard extends MovableCard {
 							}}"
 						>
 
-						<span class="label">Play?</span>
+						<span class="label">${t('play')}</span>
 					</label>
 
 					<button
@@ -312,7 +308,7 @@ export class PlayingCard extends MovableCard {
 						type="button"
 						@click="${() => this.remove()}"
 					>
-						<span class="visually-hidden">Remove playing card</span>
+						<span class="visually-hidden">${t('removeCard')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#trash-icon"></use>
@@ -325,7 +321,7 @@ export class PlayingCard extends MovableCard {
 						type="button"
 						@click="${this.swapRight}"
 					>
-						<span class="visually-hidden">Move card right</span>
+						<span class="visually-hidden">${t('moveCardRight')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#arrow-right-icon"></use>
@@ -337,7 +333,7 @@ export class PlayingCard extends MovableCard {
 					<span id="${this.tagName.toLowerCase()}-${this.uniqueId}-title" class="visually-hidden">${this.toString()}</span>
 
 					<label class="control-box">
-						<span class="visually-hidden">Rank</span>
+						<span class="visually-hidden">${t('rank')}</span>
 
 						<select
 							class="pc-rank-input select"
@@ -349,26 +345,26 @@ export class PlayingCard extends MovableCard {
 								this.rank = input.value as Rank
 							}}"
 						>
-							<option value="Ace" selected>Ace</option>
-							<option value="King">King</option>
-							<option value="Queen">Queen</option>
-							<option value="Jack">Jack</option>
-							<option value="10">10</option>
-							<option value="9">9</option>
-							<option value="8">8</option>
-							<option value="7">7</option>
-							<option value="6">6</option>
-							<option value="5">5</option>
-							<option value="4">4</option>
-							<option value="3">3</option>
-							<option value="2">2</option>
+							<option value="Ace" selected>${term('Ace')}</option>
+							<option value="King">${term('King')}</option>
+							<option value="Queen">${term('Queen')}</option>
+							<option value="Jack">${term('Jack')}</option>
+							<option value="10">${term('10')}</option>
+							<option value="9">${term('9')}</option>
+							<option value="8">${term('8')}</option>
+							<option value="7">${term('7')}</option>
+							<option value="6">${term('6')}</option>
+							<option value="5">${term('5')}</option>
+							<option value="4">${term('4')}</option>
+							<option value="3">${term('3')}</option>
+							<option value="2">${term('2')}</option>
 						</select>
 					</label>
 
-					<span class="pc-card-of">of</span>
+					<span class="pc-card-of">${t('of')}</span>
 
 					<label class="control-box">
-						<span class="visually-hidden">Suit</span>
+						<span class="visually-hidden">${t('suit')}</span>
 
 						<select
 							class="pc-suit-input select"
@@ -385,25 +381,25 @@ export class PlayingCard extends MovableCard {
 								<svg aria-hidden="true" class="icon --small">
 									<use xlink:href="#clubs-icon"></use>
 								</svg>
-								Clubs
+									<span data-term-label="Clubs"></span>
 							</option>
 							<option value="Spades">
 								<svg aria-hidden="true" class="icon --small">
 									<use xlink:href="#spades-icon"></use>
 								</svg>
-								Spades
+								<span data-term-label="Spades"></span>
 							</option>
 							<option value="Hearts">
 								<svg aria-hidden="true" class="icon --small">
 									<use xlink:href="#hearts-icon"></use>
 								</svg>
-								Hearts
+								<span data-term-label="Hearts"></span>
 							</option>
 							<option value="Diamonds">
 								<svg aria-hidden="true" class="icon --small">
 									<use xlink:href="#diamonds-icon"></use>
 								</svg>
-								Diamonds
+								<span data-term-label="Diamonds"></span>
 							</option>
 						</select>
 					</label>
@@ -411,7 +407,7 @@ export class PlayingCard extends MovableCard {
 
 				<div class="action-list">
 					<label class="control-box --flat --grow">
-						<span class="label truncate">Count</span>
+						<span class="label truncate">${t('count')}</span>
 						<input
 							class="pc-count-input text-input"
 							name="card-count-${this.uniqueId}"
@@ -433,7 +429,7 @@ export class PlayingCard extends MovableCard {
 						popovertarget="pc-duplicate-modal"
 						@click="${(event: Event) => this.showDuplicateModal(event)}"
 					>
-						<span class="visually-hidden">Duplicate card</span>
+						<span class="visually-hidden">${t('duplicateCard')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#copy-icon"></use>
@@ -454,11 +450,11 @@ export class PlayingCard extends MovableCard {
 						}}"
 					>
 
-					<span class="label">Debuffed?</span>
+					<span class="label">${t('debuffed')}</span>
 				</label>
 
 				<label class="control-box --flat --grow">
-					<span class="label truncate">Edition</span>
+					<span class="label truncate">${t('edition')}</span>
 
 					<select
 						class="pc-edition-input select"
@@ -470,15 +466,15 @@ export class PlayingCard extends MovableCard {
 							this.edition = input.value as Edition
 						}}"
 					>
-						<option value="Base" selected>Base</option>
-						<option value="Foil">Foil</option>
-						<option value="Holographic">Holographic</option>
-						<option value="Polychrome">Polychrome</option>
+						<option value="Base" selected>${termEdition('Base')}</option>
+						<option value="Foil">${termEdition('Foil')}</option>
+						<option value="Holographic">${termEdition('Holographic')}</option>
+						<option value="Polychrome">${termEdition('Polychrome')}</option>
 					</select>
 				</label>
 
 				<label class="control-box --flat --grow">
-					<span class="label truncate">Enhancement</span>
+					<span class="label truncate">${t('enhancement')}</span>
 
 					<select
 						class="pc-enhancement-input select"
@@ -490,20 +486,20 @@ export class PlayingCard extends MovableCard {
 							this.enhancement = input.value as Enhancement
 						}}"
 					>
-						<option value="None" selected>None</option>
-						<option value="Bonus">Bonus</option>
-						<option value="Mult">Mult</option>
-						<option value="Wild">Wild</option>
-						<option value="Glass">Glass</option>
-						<option value="Steel">Steel</option>
-						<option value="Stone">Stone</option>
-						<option value="Gold">Gold</option>
-						<option value="Lucky">Lucky</option>
+						<option value="None" selected>${termEnhancement('None')}</option>
+						<option value="Bonus">${termEnhancement('Bonus')}</option>
+						<option value="Mult">${termEnhancement('Mult')}</option>
+						<option value="Wild">${termEnhancement('Wild')}</option>
+						<option value="Glass">${termEnhancement('Glass')}</option>
+						<option value="Steel">${termEnhancement('Steel')}</option>
+						<option value="Stone">${termEnhancement('Stone')}</option>
+						<option value="Gold">${termEnhancement('Gold')}</option>
+						<option value="Lucky">${termEnhancement('Lucky')}</option>
 					</select>
 				</label>
 
 				<label class="control-box --flat --grow">
-					<span class="label truncate">Seal</span>
+					<span class="label truncate">${t('seal')}</span>
 
 					<select
 						class="pc-seal-input select"
@@ -518,23 +514,23 @@ export class PlayingCard extends MovableCard {
 						<button><selectedcontent></selectedcontent></button>
 						<option value="None" selected>
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: transparent"></span>
-							None
+							<span data-term-kind="seal" data-term-label="None"></span>
 						</option>
 						<option value="Gold">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-gold)"></span>
-							Gold
+							<span data-term-kind="seal" data-term-label="Gold"></span>
 						</option>
 						<option value="Red">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-red)"></span>
-							Red
+							<span data-term-kind="seal" data-term-label="Red"></span>
 						</option>
 						<option value="Blue">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-blue)"></span>
-							Blue
+							<span data-term-kind="seal" data-term-label="Blue"></span>
 						</option>
 						<option value="Purple">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-purple)"></span>
-							Purple
+							<span data-term-kind="seal" data-term-label="Purple"></span>
 						</option>
 					</select>
 				</label>

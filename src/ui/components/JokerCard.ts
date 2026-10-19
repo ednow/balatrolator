@@ -2,6 +2,7 @@ import { html } from 'lit-html'
 
 import { JOKER_DEFINITIONS } from '#lib/data.ts'
 import type { Joker, JokerEdition, JokerName, Rank, Suit } from '#lib/types.ts'
+import { getLang, t, term, termEdition } from '#ui/i18n.ts'
 import { MovableCard } from './MovableCard.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
 
@@ -295,18 +296,13 @@ export class JokerCard extends MovableCard {
 
 	toString () {
 		const modifiers = [this.edition !== 'Base' ? this.edition : undefined].filter((modifier) => modifier !== undefined)
+		const modifierText = modifiers.length > 0 ? ` (${modifiers.map((modifier) => termEdition(modifier)).join(', ')})` : ''
 
-		return `Joker ${this.index + 1}: ${this.jokerName}` + (modifiers.length > 0 ? ` (${modifiers.join(', ')})` : '')
-	}
-
-	connectedCallback () {
-		super.connectedCallback()
-
-		if (!this.isConnected) {
-			return
+		if (getLang() === 'zh') {
+			return `小丑 ${this.index + 1}：${term(this.jokerName)}${modifierText}`
 		}
 
-		this.render()
+		return `Joker ${this.index + 1}: ${this.jokerName}${modifierText}`
 	}
 
 	template () {
@@ -319,7 +315,7 @@ export class JokerCard extends MovableCard {
 						type="button"
 						@click="${this.swapLeft}"
 					>
-						<span class="visually-hidden">Move joker left</span>
+						<span class="visually-hidden">${t('moveJokerLeft')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#arrow-left-icon"></use>
@@ -331,7 +327,7 @@ export class JokerCard extends MovableCard {
 						type="button"
 						@click="${() => this.remove()}"
 					>
-						<span class="visually-hidden">Remove joker</span>
+						<span class="visually-hidden">${t('removeJoker')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#trash-icon"></use>
@@ -344,7 +340,7 @@ export class JokerCard extends MovableCard {
 						type="button"
 						@click="${this.swapRight}"
 					>
-						<span class="visually-hidden">Move joker right</span>
+						<span class="visually-hidden">${t('moveJokerRight')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#arrow-right-icon"></use>
@@ -355,7 +351,7 @@ export class JokerCard extends MovableCard {
 				<span id="${this.tagName.toLowerCase()}-${this.uniqueId}-title" class="visually-hidden">${this.toString()}</span>
 
 				<label>
-					<span class="visually-hidden">Joker name</span>
+					<span class="visually-hidden">${t('jokerName')}</span>
 
 					<combo-box
 						id="joker-name-${this.uniqueId}"
@@ -364,19 +360,22 @@ export class JokerCard extends MovableCard {
 						value="8 Ball"
 						.value="${this.jokerName}"
 						options-json="jokersJson"
-						button-label="Show joker options"
-						input-label="Filter jokers"
-						listbox-label="Jokers"
+						button-label="${t('showJokerOptions')}"
+						input-label="${t('filterJokers')}"
+						listbox-label="${t('jokers')}"
 						@change="${(event: Event) => {
-							const input = event.target as HTMLInputElement
-							this.jokerName = input.value as JokerName
+							const combo = event.currentTarget as HTMLInputElement
+							if (event.target !== combo) {
+								return
+							}
+							this.jokerName = combo.value as JokerName
 						}}"
 					></combo-box>
 				</label>
 
 				<div class="action-list">
 					<label class="control-box --flat --grow">
-						<span class="label truncate">Count</span>
+						<span class="label truncate">${t('count')}</span>
 						<input
 							id="joker-count-${this.uniqueId}"
 							class="jc-count-input text-input"
@@ -398,7 +397,7 @@ export class JokerCard extends MovableCard {
 						popovertarget="jc-duplicate-modal"
 						@click="${(event: Event) => this.showDuplicateModal(event)}"
 					>
-						<span class="visually-hidden">Duplicate joker</span>
+						<span class="visually-hidden">${t('duplicateJoker')}</span>
 
 						<svg class="icon">
 							<use xlink:href="#copy-icon"></use>
@@ -407,7 +406,7 @@ export class JokerCard extends MovableCard {
 				</div>
 
 				<label class="control-box --flat --grow">
-					<span class="label truncate">Edition</span>
+					<span class="label truncate">${t('edition')}</span>
 
 					<select
 						id="joker-edition-${this.uniqueId}"
@@ -419,17 +418,17 @@ export class JokerCard extends MovableCard {
 							this.edition = input.value as JokerEdition
 						}}"
 					>
-						<option value="Base" selected>Base</option>
-						<option value="Foil">Foil</option>
-						<option value="Holographic">Holographic</option>
-						<option value="Polychrome">Polychrome</option>
-						<option value="Negative">Negative</option>
+						<option value="Base" selected>${termEdition('Base')}</option>
+						<option value="Foil">${termEdition('Foil')}</option>
+						<option value="Holographic">${termEdition('Holographic')}</option>
+						<option value="Polychrome">${termEdition('Polychrome')}</option>
+						<option value="Negative">${termEdition('Negative')}</option>
 					</select>
 				</label>
 
 				<div class="jc-effects stack">
 					<label class="jc-plus-chips control-box --flat --grow">
-						<span class="label truncate">+Chips</span>
+						<span class="label truncate">${t('plusChips')}</span>
 
 						<input
 							name="joker-plusChips-${this.uniqueId}"
@@ -446,7 +445,7 @@ export class JokerCard extends MovableCard {
 					</label>
 
 					<label class="jc-plus-multiplier control-box --flat --grow">
-						<span class="label truncate">+Mult</span>
+						<span class="label truncate">${t('plusMult')}</span>
 
 						<input
 							name="joker-plusMultiplier-${this.uniqueId}"
@@ -463,7 +462,7 @@ export class JokerCard extends MovableCard {
 					</label>
 
 					<label class="jc-times-multiplier control-box --flat --grow">
-						<span class="label truncate">xMult</span>
+						<span class="label truncate">${t('timesMult')}</span>
 
 						<input
 							name="joker-timesMultiplier-${this.uniqueId}"
@@ -494,12 +493,12 @@ export class JokerCard extends MovableCard {
 							}}"
 						>
 
-						<span class="label">Active?</span>
+						<span class="label">${t('active')}</span>
 					</label>
 
 					<div class="jc-card input-list">
 						<label class="jc-rank">
-							<span class="visually-hidden">Rank</span>
+							<span class="visually-hidden">${t('rank')}</span>
 
 							<select
 								id="joker-rank-${this.uniqueId}"
@@ -511,26 +510,26 @@ export class JokerCard extends MovableCard {
 									this.rank = input.value as Rank
 								}}"
 							>
-								<option value="Ace" selected>Ace</option>
-								<option value="King">King</option>
-								<option value="Queen">Queen</option>
-								<option value="Jack">Jack</option>
-								<option value="10">10</option>
-								<option value="9">9</option>
-								<option value="8">8</option>
-								<option value="7">7</option>
-								<option value="6">6</option>
-								<option value="5">5</option>
-								<option value="4">4</option>
-								<option value="3">3</option>
-								<option value="2">2</option>
+								<option value="Ace" selected>${term('Ace')}</option>
+								<option value="King">${term('King')}</option>
+								<option value="Queen">${term('Queen')}</option>
+								<option value="Jack">${term('Jack')}</option>
+								<option value="10">${term('10')}</option>
+								<option value="9">${term('9')}</option>
+								<option value="8">${term('8')}</option>
+								<option value="7">${term('7')}</option>
+								<option value="6">${term('6')}</option>
+								<option value="5">${term('5')}</option>
+								<option value="4">${term('4')}</option>
+								<option value="3">${term('3')}</option>
+								<option value="2">${term('2')}</option>
 							</select>
 						</label>
 
-						<span class="jc-card-of">of</span>
+						<span class="jc-card-of">${t('of')}</span>
 
 						<label class="jc-suit">
-							<span class="visually-hidden">Suit</span>
+							<span class="visually-hidden">${t('suit')}</span>
 
 							<select
 								id="joker-suit-${this.uniqueId}"
@@ -547,25 +546,25 @@ export class JokerCard extends MovableCard {
 									<svg aria-hidden="true" class="icon --small">
 										<use xlink:href="#clubs-icon"></use>
 									</svg>
-									Clubs
+									<span data-term-label="Clubs"></span>
 								</option>
 								<option value="Spades">
 									<svg aria-hidden="true" class="icon --small">
 										<use xlink:href="#spades-icon"></use>
 									</svg>
-									Spades
+									<span data-term-label="Spades"></span>
 								</option>
 								<option value="Hearts">
 									<svg aria-hidden="true" class="icon --small">
 										<use xlink:href="#hearts-icon"></use>
 									</svg>
-									Hearts
+									<span data-term-label="Hearts"></span>
 								</option>
 								<option value="Diamonds">
 									<svg aria-hidden="true" class="icon --small">
 										<use xlink:href="#diamonds-icon"></use>
 									</svg>
-									Diamonds
+									<span data-term-label="Diamonds"></span>
 								</option>
 							</select>
 						</label>
