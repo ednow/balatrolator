@@ -39,7 +39,10 @@ const lightCss = /*css*/`
 	}
 
 	.jc-edition-input {
-		inline-size: 8.5rem;
+		inline-size: auto;
+		min-inline-size: 4.5rem;
+		max-inline-size: 8.5rem;
+		flex: 1 1 auto;
 	}
 
 	joker-card:not(.--has-plus-chips):not(.--has-plus-multiplier):not(.--has-times-multiplier):not(.--has-is-active):not(.--has-rank):not(.--has-suit) .jc-effects {
@@ -104,6 +107,10 @@ const lightCss = /*css*/`
 	.jc-times-multiplier-input {
 		inline-size: 7rem;
 		text-align: end;
+	}
+
+	joker-card .action-list .jc-is-active {
+		flex: 0 0 auto;
 	}
 `
 const lightStyleSheet = await new CSSStyleSheet().replace(lightCss)
@@ -322,6 +329,23 @@ export class JokerCard extends MovableCard {
 						</svg>
 					</button>
 
+					<label class="jc-is-active checkbox-control">
+						<input
+							name="joker-active-${this.uniqueId}"
+							class="jc-is-active-input"
+							type="checkbox"
+							value="is-active"
+							checked
+							.checked="${this.active}"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.active = input.checked
+							}}"
+						>
+
+						<span class="visually-hidden">${t('active')}</span>
+					</label>
+
 					<button
 						class="button --icon push-inline-start"
 						type="button"
@@ -477,23 +501,6 @@ export class JokerCard extends MovableCard {
 								this.timesMultiplier = Number(input.value)
 							}}"
 						>
-					</label>
-
-					<label class="jc-is-active checkbox-control">
-						<input
-							name="joker-active-${this.uniqueId}"
-							class="jc-is-active-input"
-							type="checkbox"
-							value="is-active"
-							checked
-							.checked="${this.active}"
-							@change="${(event: Event) => {
-								const input = event.target as HTMLInputElement
-								this.active = input.checked
-							}}"
-						>
-
-						<span class="label">${t('active')}</span>
 					</label>
 
 					<div class="jc-card input-list">

@@ -45,6 +45,39 @@
 	flex: 1;
 }
 
+.list > playing-card {
+	flex: 1 1 14rem;
+	min-inline-size: 14rem;
+}
+
+.list > joker-card {
+	flex: 1 1 14rem;
+	min-inline-size: 14rem;
+}
+
+html.mobile-ui .form__jokers .list,
+html.mobile-ui .form__cards .list {
+	flex-wrap: wrap;
+}
+
+html.mobile-ui .form__jokers .list > joker-card,
+html.mobile-ui .form__cards .list > playing-card {
+	--cards-per-row: 3;
+	--cards-row-gaps: 1rem;
+
+	flex: 1 1 calc((100% - var(--cards-row-gaps)) / var(--cards-per-row));
+	min-inline-size: 0;
+	max-inline-size: calc((100% - var(--cards-row-gaps)) / var(--cards-per-row));
+}
+
+@media (orientation: landscape) {
+	html.mobile-ui .form__jokers .list > joker-card,
+	html.mobile-ui .form__cards .list > playing-card {
+		--cards-per-row: 5;
+		--cards-row-gaps: 2rem;
+	}
+}
+
 .actions {
 	display: flex;
 	align-items: center;

@@ -60,15 +60,24 @@ const lightCss = /*css*/`
 	}
 
 	.pc-edition-input {
-		inline-size: 8.5rem;
+		inline-size: auto;
+		min-inline-size: 4.5rem;
+		max-inline-size: 8.5rem;
+		flex: 1 1 auto;
 	}
 
 	.pc-enhancement-input {
-		inline-size: 5.5rem;
+		inline-size: auto;
+		min-inline-size: 4rem;
+		max-inline-size: 5.5rem;
+		flex: 1 1 auto;
 	}
 
 	.pc-seal-input {
-		inline-size: 5.5rem;
+		inline-size: auto;
+		min-inline-size: 4rem;
+		max-inline-size: 5.5rem;
+		flex: 1 1 auto;
 	}
 
 	.pc-seal-orb {
@@ -300,7 +309,7 @@ export class PlayingCard extends MovableCard {
 							}}"
 						>
 
-						<span class="label">${t('play')}</span>
+						<span class="visually-hidden">${t('play')}</span>
 					</label>
 
 					<button

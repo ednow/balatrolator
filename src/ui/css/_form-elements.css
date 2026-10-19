@@ -20,6 +20,14 @@
 	flex-wrap: wrap;
 }
 
+.control-box:where(.--flat):not(:has(.secondary-label)) {
+	flex-wrap: nowrap;
+}
+
+.control-box:where(.--flat):not(:has(.secondary-label)) > .label {
+	flex-shrink: 0;
+}
+
 .control-box>.label,
 .control-box>.secondary-label {
 	display: block;

@@ -20,10 +20,53 @@ const lightCss = /*css*/`
 		}
 	}
 
+	.hlc-fieldset {
+		border: none;
+		padding: 0;
+		margin: 0;
+		min-inline-size: 0;
+	}
+
+	.hlc-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-inline-size: 0;
+	}
+
+	.hlc-hand-name {
+		font-weight: bold;
+	}
+
 	.hlc-level-input,
 	.hlc-plays-input {
 		text-align: end;
 		inline-size: 2.5rem;
+	}
+
+	html.mobile-ui hand-level-card .hlc-row {
+		flex-direction: row;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	html.mobile-ui hand-level-card .hlc-hand-name {
+		flex: 1 1 auto;
+		min-inline-size: 0;
+		font-size: 0.9em;
+		font-weight: normal;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	html.mobile-ui hand-level-card .hlc-row .input-list {
+		flex: 0 0 auto;
+		flex-wrap: nowrap;
+	}
+
+	html.mobile-ui hand-level-card .hlc-row .input-list > * {
+		flex: 0 0 auto;
 	}
 `
 const lightStyleSheet = await new CSSStyleSheet().replace(lightCss)
@@ -83,10 +126,12 @@ export class HandLevelCard extends BaseElement {
 
 	template () {
 		return html`
-			<fieldset class="stack">
-				<legend>${term(this.handName)}</legend>
+			<fieldset class="hlc-fieldset">
+				<legend class="visually-hidden">${term(this.handName)}</legend>
 
-				<div class="stack">
+				<div class="hlc-row">
+					<span class="hlc-hand-name">${term(this.handName)}</span>
+
 					<div class="input-list">
 						<label class="control-box --flat --grow">
 							<span class="label">

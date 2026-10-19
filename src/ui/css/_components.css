@@ -34,10 +34,104 @@
 		'hands round round'
 		'hands jokers jokers'
 		'hands cards cards'
-		'hands score log'
+		'hands score score'
 	;
 	grid-template-columns: 14rem minmax(0, 1fr) minmax(0, 2fr);
 	gap: 0.5rem;
+}
+
+.form__mobile-triggers {
+	display: none;
+	gap: 0.25rem;
+	flex-wrap: nowrap;
+}
+
+.score-and-log {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+	gap: 0.5rem;
+	align-items: start;
+}
+
+.score-and-log__log-heading {
+	font-size: 1em;
+	font-weight: bold;
+	margin: 0;
+}
+
+.luck-switch {
+	font: inherit;
+}
+
+html.mobile-ui body.mobile-panel-open {
+	overflow: hidden;
+}
+
+.score-fab {
+	--fab-bg: hsl(4 60% 94%);
+	--fab-border: hsl(4 42% 45%);
+	--fab-text: hsl(4 35% 22%);
+
+	display: none;
+	position: fixed;
+	z-index: 45;
+	inset-inline-end: 1rem;
+	inset-block-end: 1rem;
+	inline-size: 6.5rem;
+	block-size: 6.5rem;
+	padding: 0.4rem;
+	border: 2px solid var(--fab-border);
+	border-radius: 50%;
+	color: var(--fab-text);
+	background-color: var(--fab-bg);
+	box-shadow: 0 0.2rem 0.65rem hsl(0 0% 0% / 0.18);
+	font-size: 0.9rem;
+	line-height: 1.2;
+	cursor: pointer;
+	touch-action: manipulation;
+	user-select: none;
+}
+
+.score-fab--luck-none {
+	--fab-bg: hsl(4 60% 94%);
+	--fab-border: hsl(4 42% 45%);
+	--fab-text: hsl(4 35% 22%);
+}
+
+.score-fab--luck-average {
+	--fab-bg: hsl(46 85% 90%);
+	--fab-border: hsl(42 48% 40%);
+	--fab-text: hsl(38 40% 20%);
+}
+
+.score-fab--luck-all {
+	--fab-bg: hsl(152 42% 88%);
+	--fab-border: hsl(152 32% 34%);
+	--fab-text: hsl(155 38% 18%);
+}
+
+.score-fab__luck {
+	display: block;
+	font-size: 0.95rem;
+	font-weight: bold;
+}
+
+.score-fab__value {
+	display: block;
+	margin-block-start: 0.1rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 1rem;
+	font-weight: bold;
+}
+
+.hide-on-wide {
+	display: none;
+}
+
+.hide-on-narrow {
+	/* visible by default on wide screens */
 }
 
 .form__round {
@@ -52,16 +146,22 @@
 	grid-area: jokers;
 }
 
+.card-dropzone {
+	flex: 1 1 auto;
+	min-block-size: 3rem;
+	align-content: flex-start;
+}
+
+html.mobile-ui .card-dropzone {
+	min-block-size: 4.5rem;
+}
+
 .form__cards {
 	grid-area: cards;
 }
 
 .form__score {
 	grid-area: score;
-}
-
-.form__log {
-	grid-area: log;
 }
 
 .panel {
@@ -89,10 +189,56 @@
 	inline-size: 100%;
 }
 
+.introduction-meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 0.35rem;
+	margin-inline-start: auto;
+	min-inline-size: 0;
+}
+
+html.mobile-ui .introduction-meta {
+	margin-inline-start: 0;
+	inline-size: 100%;
+	justify-content: space-between;
+	gap: 0.25rem;
+}
+
+html.mobile-ui .introduction .panel-header {
+	flex-wrap: nowrap;
+}
+
+html.mobile-ui .form__mobile-triggers {
+	display: flex;
+	flex: 1 1 auto;
+	justify-content: center;
+	min-inline-size: 0;
+}
+
+html.mobile-ui .form__mobile-triggers .button {
+	min-block-size: 1.75rem;
+	padding-inline: 0.45rem;
+}
+
+html.mobile-ui .introduction-version {
+	flex-shrink: 0;
+	font-size: 0.95em;
+}
+
+html.mobile-ui .introduction-version code {
+	font-size: 0.95em;
+}
+
+.introduction-version {
+	margin: 0;
+	white-space: nowrap;
+}
+
 .lang-switch {
 	display: inline flex;
+	flex-shrink: 0;
 	gap: 0.25rem;
-	margin-inline-start: auto;
 }
 
 .lang-switch .button {
@@ -243,4 +389,71 @@
 
 .log:empty {
 	display: none;
+}
+
+html.mobile-ui .hide-on-narrow {
+	display: none !important;
+}
+
+html.mobile-ui .hide-on-wide {
+	display: revert;
+}
+
+html.mobile-ui .score-fab.hide-on-wide {
+	display: block;
+}
+
+html.mobile-ui .header {
+	flex-direction: column;
+}
+
+html.mobile-ui .header .saves {
+	display: none;
+}
+
+html.mobile-ui .form {
+	grid-template-areas:
+		'jokers'
+		'cards'
+	;
+	grid-template-columns: minmax(0, 1fr);
+}
+
+html.mobile-ui .form__hands,
+html.mobile-ui .form__round,
+html.mobile-ui .form__score {
+	display: none;
+}
+
+html.mobile-ui .form__hands.--mobile-open,
+html.mobile-ui .form__round.--mobile-open,
+html.mobile-ui .form__score.--mobile-open,
+html.mobile-ui .header .saves.--mobile-open {
+	display: block;
+	position: fixed;
+	z-index: 50;
+	inset: 0.5rem;
+	overflow: auto;
+	margin: 0;
+}
+
+html.mobile-ui .score-and-log {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+html.mobile-ui .score-and-log__log .log {
+	max-block-size: 12rem;
+}
+
+html.mobile-ui .table-wrapper {
+	max-block-size: 10rem;
+}
+
+html.mobile-ui .actions-cell {
+	inline-size: auto;
+}
+
+html.mobile-ui th,
+html.mobile-ui td {
+	padding: 0.25rem 0.5rem;
 }

@@ -1,8 +1,10 @@
 import { LANGUAGE_CHANGE_EVENT, getLang, t, term } from './i18n.ts'
+import { initMobileUi, isMobileUi } from './mobileUi.ts'
 import './components/ComboBox.ts'
 
 import { getState } from '#lib/getState.ts'
 import { calculateScore } from '#lib/calculateScore.ts'
+import { LUCKS } from '#lib/data.ts'
 import type { ComboBox } from './components/ComboBox.ts'
 import { HandLevelCard } from './components/HandLevelCard.ts'
 import { JokerCard } from './components/JokerCard.ts'
@@ -58,22 +60,49 @@ const jokerSlotsInput = form.querySelector<HTMLInputElement>('[name="jokerSlots"
 const handLevelContainer = form.querySelector<HTMLElement>('[data-h-container]')!
 
 const jokerContainer = form.querySelector<HTMLElement>('[data-j-container]')!
-const addJokerButton = form.querySelector<HTMLButtonElement>('[data-j-add-button]')!
-addJokerButton.addEventListener('click', () => addJoker())
+function isCardListBlankAreaClick (event: Event) {
+	return !(event.target as Element).closest('joker-card, playing-card')
+}
+
+jokerContainer.addEventListener('dblclick', (event) => {
+	if (!isCardListBlankAreaClick(event)) {
+		return
+	}
+
+	addJoker()
+})
 const duplicateJokerButton = document.querySelector<HTMLButtonElement>('[data-j-duplicate-button]')!
 duplicateJokerButton.addEventListener('click', (event) => duplicate(event))
 
 const playingCardContainer = form.querySelector<HTMLElement>('[data-c-container]')!
-const addCardButton = form.querySelector<HTMLButtonElement>('[data-c-add-button]')!
-addCardButton.addEventListener('click', () => addPlayingCard())
+playingCardContainer.addEventListener('dblclick', (event) => {
+	if (!isCardListBlankAreaClick(event)) {
+		return
+	}
+
+	addPlayingCard()
+})
 const duplicateCardButton = document.querySelector<HTMLButtonElement>('[data-c-duplicate-button]')!
 duplicateCardButton.addEventListener('click', (event) => duplicate(event))
 
 const scoreCardContainer = form.querySelector<HTMLElement>('[data-sc-container]')!
 const playedHandEl = form.querySelector<HTMLElement>('[data-sc-played-hand]')!
-form.querySelector<HTMLButtonElement>('[data-sc-reset-button]')!.addEventListener('click', () => {
-	populateUiWithState(getState({}))
-})
+const scoreLogEl = form.querySelector<HTMLPreElement>('[data-sc-log]')!
+const scoreFabEl = document.querySelector<HTMLButtonElement>('[data-sc-fab]')!
+const scoreFabLuckEl = document.querySelector<HTMLElement>('[data-sc-fab-luck]')!
+const scoreFabValueEl = document.querySelector<HTMLElement>('[data-sc-fab-score]')!
+
+const SCORE_FAB_LONG_PRESS_MS = 500
+
+let selectedLuck: Luck = 'none'
+let lastScoreHand: HandName = 'High Card'
+let lastScoreResults: Result[] = []
+
+for (const resetButton of form.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
+	resetButton.addEventListener('click', () => {
+		populateUiWithState(getState({}))
+	})
+}
 
 const saveRowTemplate = document.querySelector<HTMLTemplateElement>('template#save-row')!
 const saveForm = document.querySelector<HTMLFormElement>('[data-s-form]')!
@@ -115,7 +144,174 @@ function luckLabel (luck: Luck) {
 	return t('luckAverage')
 }
 
+function cycleSelectedLuck () {
+	const luckIndex = LUCKS.indexOf(selectedLuck)
+	selectedLuck = LUCKS[(luckIndex + 1) % LUCKS.length]!
+	renderScoreUi(lastScoreHand, lastScoreResults)
+}
+
+function updateScoreFab (result: Result) {
+	scoreFabEl.classList.remove('score-fab--luck-none', 'score-fab--luck-average', 'score-fab--luck-all')
+	scoreFabEl.classList.add(`score-fab--luck-${result.luck}`)
+	scoreFabLuckEl.textContent = luckLabel(result.luck)
+	scoreFabValueEl.textContent = result.formattedScore
+}
+
+function initScoreFabLongPress () {
+	let longPressTimer: ReturnType<typeof setTimeout> | undefined
+	let suppressNextClick = false
+
+	const cancelLongPress = () => {
+		if (longPressTimer !== undefined) {
+			clearTimeout(longPressTimer)
+			longPressTimer = undefined
+		}
+	}
+
+	scoreFabEl.addEventListener('pointerdown', (event) => {
+		if (!isMobileUi()) {
+			return
+		}
+
+		if (event.pointerType === 'mouse' && event.button !== 0) {
+			return
+		}
+
+		suppressNextClick = false
+		cancelLongPress()
+		longPressTimer = setTimeout(() => {
+			longPressTimer = undefined
+			suppressNextClick = true
+			cycleSelectedLuck()
+		}, SCORE_FAB_LONG_PRESS_MS)
+	})
+
+	scoreFabEl.addEventListener('pointerup', cancelLongPress)
+	scoreFabEl.addEventListener('pointercancel', cancelLongPress)
+	scoreFabEl.addEventListener('pointerleave', cancelLongPress)
+
+	scoreFabEl.addEventListener('click', (event) => {
+		if (!suppressNextClick) {
+			return
+		}
+
+		event.preventDefault()
+		event.stopImmediatePropagation()
+		suppressNextClick = false
+	}, true)
+}
+
+const MOBILE_PANEL_HISTORY_KEY = 'balatrolatorMobilePanel'
+
+let mobilePanelOnHistoryStack = false
+let skipMobilePanelPopstate = false
+
+function closeMobilePanelsUi () {
+	for (const panel of document.querySelectorAll('[data-mobile-panel]')) {
+		panel.classList.remove('--mobile-open')
+	}
+	document.body.classList.remove('mobile-panel-open')
+}
+
+function syncMobilePanelHistoryOnDismiss () {
+	if (!mobilePanelOnHistoryStack) {
+		return
+	}
+
+	mobilePanelOnHistoryStack = false
+
+	if (!isMobileUi()) {
+		return
+	}
+
+	skipMobilePanelPopstate = true
+	history.back()
+}
+
+function closeMobilePanels () {
+	const hadOpenPanel = document.querySelector('[data-mobile-panel].--mobile-open') !== null
+	closeMobilePanelsUi()
+
+	if (hadOpenPanel) {
+		syncMobilePanelHistoryOnDismiss()
+	}
+}
+
+function openMobilePanel (id: string) {
+	for (const panel of document.querySelectorAll('[data-mobile-panel]')) {
+		panel.classList.remove('--mobile-open')
+	}
+
+	const panel = document.querySelector<HTMLElement>(`[data-mobile-panel="${id}"]`)
+	panel?.classList.add('--mobile-open')
+	document.body.classList.add('mobile-panel-open')
+
+	if (!isMobileUi()) {
+		return
+	}
+
+	const state = { [MOBILE_PANEL_HISTORY_KEY]: id }
+
+	if (mobilePanelOnHistoryStack) {
+		history.replaceState(state, '')
+	} else {
+		history.pushState(state, '')
+		mobilePanelOnHistoryStack = true
+	}
+}
+
+function initMobileBackGesture () {
+	window.addEventListener('popstate', () => {
+		if (skipMobilePanelPopstate) {
+			skipMobilePanelPopstate = false
+			return
+		}
+
+		if (!mobilePanelOnHistoryStack) {
+			return
+		}
+
+		mobilePanelOnHistoryStack = false
+		closeMobilePanelsUi()
+	})
+}
+
+function initMobilePanels () {
+	for (const button of document.querySelectorAll<HTMLButtonElement>('[data-mobile-panel-open]')) {
+		button.addEventListener('click', () => {
+			const id = button.getAttribute('data-mobile-panel-open')
+			if (id) {
+				openMobilePanel(id)
+			}
+		})
+	}
+
+	for (const button of document.querySelectorAll<HTMLButtonElement>('[data-mobile-panel-close]')) {
+		button.addEventListener('click', () => closeMobilePanels())
+	}
+}
+
+function onMobileUiChange () {
+	closeMobilePanelsUi()
+
+	if (mobilePanelOnHistoryStack) {
+		if (isMobileUi()) {
+			skipMobilePanelPopstate = true
+			mobilePanelOnHistoryStack = false
+			history.back()
+		} else {
+			mobilePanelOnHistoryStack = false
+		}
+	}
+
+	if (lastScoreResults.length > 0) {
+		renderScoreUi(lastScoreHand, lastScoreResults)
+	}
+}
+
 export function init () {
+	initMobileUi(onMobileUiChange)
+
 	saveManager.retrieveStoredSaves()
 
 	// Read the state from the URL first, then read it from web storage, and finally, fall back to the default/initial state.
@@ -123,6 +319,9 @@ export function init () {
 	populateUiWithState(state)
 
 	populateSavesUi()
+	initMobilePanels()
+	initMobileBackGesture()
+	initScoreFabLongPress()
 
 	window.addEventListener(LANGUAGE_CHANGE_EVENT, () => {
 		dateTimeFormat = createDateTimeFormat()
@@ -287,7 +486,24 @@ function applyState (state: State) {
 	storeSaves()
 }
 
-function updateScore (hand: HandName, results: Result[]) {
+function appendScoreCard (result: Result) {
+	const template = document.querySelector<HTMLTemplateElement>('template#score-card')!
+	const fragment = template.content.cloneNode(true) as Element
+
+	const luckEl = fragment.querySelector<HTMLElement>('[data-sc-luck]')!
+	luckEl.textContent = luckLabel(result.luck)
+
+	const formattedScoreEl = fragment.querySelector<HTMLElement>('[data-sc-formatted-score]')!
+	formattedScoreEl.textContent = result.formattedScore
+
+	const scoreEl = fragment.querySelector<HTMLElement>('[data-sc-score]')!
+	const equation = `${result.chips}×${result.multiplier}`
+	scoreEl.textContent = equation + '\n= ' + result.score
+
+	scoreCardContainer.appendChild(fragment)
+}
+
+function renderScoreUi (hand: HandName, results: Result[]) {
 	const resultsByScore = new Map<string, Result>()
 	for (const result of results) {
 		if (!resultsByScore.has(result.score)) {
@@ -298,31 +514,22 @@ function updateScore (hand: HandName, results: Result[]) {
 	playedHandEl.textContent = term(hand)
 
 	scoreCardContainer.innerHTML = ''
-	for (const result of resultsByScore.values()) {
-		const template = document.querySelector<HTMLTemplateElement>('template#score-card')!
-		const fragment = template.content.cloneNode(true) as Element
+	const displayResults = isMobileUi()
+		? [results.find((result) => result.luck === selectedLuck) ?? results[0]!]
+		: Array.from(resultsByScore.values())
 
-		const luckEl = fragment.querySelector<HTMLElement>('[data-sc-luck]')!
-		luckEl.textContent = luckLabel(result.luck)
-
-		const formattedScoreEl = fragment.querySelector<HTMLElement>('[data-sc-formatted-score]')!
-		formattedScoreEl.textContent = result.formattedScore
-
-		const scoreEl = fragment.querySelector<HTMLElement>('[data-sc-score]')!
-		const equation = `${result.chips}×${result.multiplier}`
-		scoreEl.textContent = equation + '\n= ' + result.score
-
-		scoreCardContainer.appendChild(fragment)
+	for (const result of displayResults) {
+		appendScoreCard(result)
 	}
 
-	const resultArray = Array.from(resultsByScore.values())
+	const resultArray = isMobileUi() ? results : Array.from(resultsByScore.values())
 
 	let scoreAnnouncement
 	const handName = term(hand)
 	if (resultArray.length === 3) {
-		const scoreLuckNone = resultArray.at(0)!.formattedScore
-		const scoreLuckAverage = resultArray.at(1)!.formattedScore
-		const scoreLuckAll = resultArray.at(2)!.formattedScore
+		const scoreLuckNone = results.find((result) => result.luck === 'none')!.formattedScore
+		const scoreLuckAverage = results.find((result) => result.luck === 'average')!.formattedScore
+		const scoreLuckAll = results.find((result) => result.luck === 'all')!.formattedScore
 		scoreAnnouncement = getLang() === 'zh'
 			? `${handName}，平均 ${scoreLuckAverage}，最佳 ${scoreLuckAll}，最差 ${scoreLuckNone}。`
 			: `${hand} scoring ${scoreLuckAverage} on average, ${scoreLuckAll} in the best case, and ${scoreLuckNone} in the worst case.`
@@ -333,8 +540,19 @@ function updateScore (hand: HandName, results: Result[]) {
 	}
 	debouncedAriaNotify(scoreAnnouncement)
 
-	const scoreLog = form.querySelector<HTMLPreElement>('[data-sc-log]')!
-	scoreLog.innerHTML = resultArray.map((result) => result.log.join('\n')).join('\n')
+	if (isMobileUi()) {
+		const active = results.find((result) => result.luck === selectedLuck) ?? results[0]!
+		scoreLogEl.textContent = active.log.join('\n')
+		updateScoreFab(active)
+	} else {
+		scoreLogEl.textContent = resultArray.map((result) => result.log.join('\n')).join('\n\n')
+	}
+}
+
+function updateScore (hand: HandName, results: Result[]) {
+	lastScoreHand = hand
+	lastScoreResults = results
+	renderScoreUi(hand, results)
 }
 
 /**

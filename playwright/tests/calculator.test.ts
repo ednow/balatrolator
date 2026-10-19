@@ -128,7 +128,7 @@ test.describe('Jokers', () => {
 
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
 
-		await page.getByRole('button', { name: /^Add joker$/ }).click()
+		await page.locator('[data-j-container]').dblclick()
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-25*****0*0*1*-')
 
 		const name = page.locator('[name^="joker-name-"]')
@@ -156,7 +156,7 @@ test.describe('Jokers', () => {
 	test('show/hide dependent fields when switching joker', async ({ page }) => {
 		await page.goto('/')
 
-		await page.getByRole('button', { name: /^Add joker$/ }).click()
+		await page.locator('[data-j-container]').dblclick()
 		const jokerCard = page.locator('joker-card')
 		await expect(jokerCard.getByRole('combobox', { name: /^Suit$/ })).toBeHidden()
 		await expect(jokerCard.getByRole('combobox', { name: /^Rank$/ })).toBeHidden()
@@ -371,7 +371,7 @@ test.describe('Playing cards', () => {
 
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
 
-		await page.getByRole('button', { name: /^Add card$/ }).click()
+		await page.locator('[data-c-container]').dblclick()
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--0*0*****1*')
 
 		const count = page.getByRole('spinbutton', { name: /^Count$/ })
@@ -398,7 +398,7 @@ test.describe('Playing cards', () => {
 	test('show/hide debuffed checkbox when The Pillar is active', async ({ page }) => {
 		await page.goto('/')
 
-		await page.getByRole('button', { name: /^Add card$/ }).click()
+		await page.locator('[data-c-container]').dblclick()
 		const playingCard = page.locator('playing-card')
 		await expect(playingCard.getByRole('checkbox', { name: /^Debuffed\?$/ })).toBeHidden()
 

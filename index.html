@@ -33,23 +33,31 @@
 			<div class="header">
 				<div class="introduction panel">
 					<header class="panel-header">
-						<h1>Balatrolator</h1>
+						<h1 class="hide-on-narrow">Balatrolator</h1>
 
-						<div class="lang-switch" data-i18n-aria="language">
-							<button class="button" type="button" data-set-lang="zh" aria-pressed="true">中文</button>
-							<button class="button" type="button" data-set-lang="en" aria-pressed="false">English</button>
+						<div class="introduction-meta">
+							<p class="introduction-version"><span data-i18n="versionShort">版本</span> <code>1.0.1o</code></p>
+
+							<div class="form__mobile-triggers hide-on-wide">
+								<button class="button" type="button" data-mobile-panel-open="hands" data-i18n="levels">等级</button>
+								<button class="button" type="button" data-mobile-panel-open="round" data-i18n="roundShort">回合</button>
+								<button class="button" type="button" data-mobile-panel-open="saves" data-i18n="saves">存档</button>
+							</div>
+
+							<div class="lang-switch" data-i18n-aria="language">
+								<button class="button" type="button" data-set-lang="zh" aria-pressed="true" data-i18n="langZhShort">中</button>
+								<button class="button" type="button" data-set-lang="en" aria-pressed="false" data-i18n="langEnShort">EN</button>
+							</div>
 						</div>
 					</header>
 
-					<p data-i18n-html="intro">Balatrolator 是<a href="https://www.playbalatro.com/">小丑牌</a>的计分计算器。去买游戏吧！</p>
+					<p class="hide-on-narrow" data-i18n-html="intro">Balatrolator 是<a href="https://www.playbalatro.com/">小丑牌</a>的计分计算器。去买游戏吧！</p>
 
-					<p data-i18n-html="contribute">遇到问题请<a href="https://github.com/kleinfreund/balatrolator/issues/new/choose">反馈</a>。想<a href="https://github.com/kleinfreund/balatrolator">参与贡献</a>？</p>
+					<p class="hide-on-narrow" data-i18n-html="contribute">遇到问题请<a href="https://github.com/kleinfreund/balatrolator/issues/new/choose">反馈</a>。想<a href="https://github.com/kleinfreund/balatrolator">参与贡献</a>？</p>
 
-					<p><span data-i18n="version">当前版本：</span> <code>1.0.1o</code></p>
+					<p class="hide-on-narrow" data-i18n-html="credit">由 <a href="https://kleinfreund.de">kleinfreund</a> 用爱制作。</p>
 
-					<p data-i18n-html="credit">由 <a href="https://kleinfreund.de">kleinfreund</a> 用爱制作。</p>
-
-					<p>
+					<p class="hide-on-narrow">
 						<svg class="icon">
 							<use xlink:href="#spades-icon"></use>
 						</svg>
@@ -65,23 +73,31 @@
 					</p>
 				</div>
 
-				<div class="saves panel">
+				<div class="saves panel" data-mobile-panel="saves">
 					<div class="stack">
 						<header class="panel-header">
-							<h2 data-i18n="saves">存档</h2>
+							<h2 class="hide-on-wide" data-i18n="saves">存档</h2>
+
+							<button class="button --icon hide-on-wide push-inline-start" type="button" data-mobile-panel-close>
+								<span class="visually-hidden" data-i18n="close">关闭</span>
+
+								<svg class="icon">
+									<use xlink:href="#close-icon"></use>
+								</svg>
+							</button>
 						</header>
 
-						<p data-i18n="savesHelp">分数更新时会自动保存当前手牌。存档保存在浏览器的本地存储中。</p>
+						<p class="hide-on-narrow" data-i18n="savesHelp">分数更新时会自动保存当前手牌。存档保存在浏览器的本地存储中。</p>
 
 						<div class="table-wrapper">
 							<table>
-								<caption data-i18n="saves">存档</caption>
+								<caption class="visually-hidden" data-i18n="saves">存档</caption>
 								<thead>
 									<tr>
 										<th data-i18n="name">名称</th>
-										<th data-i18n="hand">牌型</th>
+										<th class="hide-on-narrow" data-i18n="hand">牌型</th>
 										<th data-i18n="score">分数</th>
-										<th data-i18n="time">时间</th>
+										<th class="hide-on-narrow" data-i18n="time">时间</th>
 										<th data-i18n="actions">操作</th>
 									</tr>
 								</thead>
@@ -108,7 +124,7 @@
 							</div>
 						</form>
 
-						<form class="stack" data-s-import-form>
+						<form class="stack hide-on-narrow" data-s-import-form>
 							<h3 data-i18n="importSave">导入存档</h3>
 
 							<div class="s-import-container">
@@ -143,20 +159,36 @@
 			</div>
 
 			<form class="form" data-form>
-				<div class="form__hands panel">
+				<div class="form__hands panel" data-mobile-panel="hands">
 					<div class="stack">
 						<header class="panel-header">
 							<h2 data-i18n="levels">等级</h2>
+
+							<button class="button --icon hide-on-wide push-inline-start" type="button" data-mobile-panel-close>
+								<span class="visually-hidden" data-i18n="close">关闭</span>
+
+								<svg class="icon">
+									<use xlink:href="#close-icon"></use>
+								</svg>
+							</button>
 						</header>
 
 						<div class="stack" data-h-container></div>
 					</div>
 				</div>
 
-				<div class="form__round panel">
+				<div class="form__round panel" data-mobile-panel="round">
 					<div class="stack">
 						<header class="panel-header">
 							<h2 data-i18n="roundData">回合数据</h2>
+
+							<button class="button --icon hide-on-wide push-inline-start" type="button" data-mobile-panel-close>
+								<span class="visually-hidden" data-i18n="close">关闭</span>
+
+								<svg class="icon">
+									<use xlink:href="#close-icon"></use>
+								</svg>
+							</button>
 						</header>
 
 						<div class="list">
@@ -219,7 +251,6 @@
 										<label class="r-blind-is-active checkbox-control">
 											<input class="r-blind-is-active-input" name="blindIsActive" type="checkbox" value="is-active" checked>
 
-											<span class="label" aria-hidden="true" data-i18n="activeShort">激活？</span>
 											<span class="visually-hidden" data-i18n="blindActive">盲注已激活</span>
 										</label>
 									</div>
@@ -323,70 +354,60 @@
 
 				<div class="form__jokers panel">
 					<div class="stack">
-						<header class="panel-header">
-							<h2 data-i18n="jokers">小丑</h2>
-
-							<button class="add-joker-button button --icon" type="button" data-j-add-button>
-								<span class="visually-hidden" data-i18n="addJoker">添加小丑</span>
-
-								<svg class="icon">
-									<use xlink:href="#plus-icon"></use>
-								</svg>
-							</button>
-						</header>
-
-						<div class="list" data-j-container></div>
+						<div class="list card-dropzone" data-j-container data-i18n-aria="addJoker"></div>
 					</div>
 				</div>
 
 				<div class="form__cards panel">
 					<div class="stack">
-						<header class="panel-header">
-							<h2 data-i18n="cards">手牌</h2>
-
-							<button class="add-card-button button --icon" type="button" data-c-add-button>
-								<span class="visually-hidden" data-i18n="addCard">添加卡牌</span>
-
-								<svg class="icon">
-									<use xlink:href="#plus-icon"></use>
-								</svg>
-							</button>
-						</header>
-
-						<div class="list" data-c-container></div>
+						<div class="list card-dropzone" data-c-container data-i18n-aria="addCard"></div>
 					</div>
 				</div>
 
-				<div class="form__score panel">
+				<div class="form__score panel" data-mobile-panel="score">
 					<div class="stack">
 						<header class="panel-header">
 							<h2 data-i18n="score">分数</h2>
+
+							<button class="button --icon hide-on-wide push-inline-start" type="button" data-mobile-panel-close>
+								<span class="visually-hidden" data-i18n="close">关闭</span>
+
+								<svg class="icon">
+									<use xlink:href="#close-icon"></use>
+								</svg>
+							</button>
 
 							<button class="button" type="button" data-sc-reset-button>
 								<svg class="icon">
 									<use xlink:href="#broom-icon"></use>
 								</svg>
 
-								<span data-i18n="resetHand">重置当前手牌</span>
+								<span class="hide-on-wide visually-hidden" data-i18n="resetHand">重置当前手牌</span>
+								<span class="hide-on-narrow" data-i18n="resetHand">重置当前手牌</span>
 							</button>
 						</header>
 
-						<div class="stack">
-							<p><span data-i18n="playedHand">牌型：</span><b data-sc-played-hand>—</b></p>
+						<div class="score-and-log">
+							<div class="stack score-and-log__score">
+								<p><span data-i18n="playedHand">牌型：</span><b data-sc-played-hand>—</b></p>
 
-							<div class="list" data-sc-container></div>
+								<div class="list" data-sc-container></div>
+							</div>
+
+							<div class="stack score-and-log__log">
+								<h3 class="score-and-log__log-heading hide-on-wide" data-i18n="log">记录</h3>
+
+								<pre class="log" data-sc-log></pre>
+							</div>
 						</div>
 					</div>
 				</div>
-
-				<div class="form__log panel">
-					<header class="panel-header">
-						<h2 data-i18n="log">记录</h2>
-					</header>
-
-					<pre class="log" data-sc-log></pre>
-				</div>
 			</form>
+
+			<button class="score-fab score-fab--luck-none hide-on-wide" type="button" data-sc-fab data-mobile-panel-open="score" data-i18n-aria="score">
+				<span class="score-fab__luck" data-sc-fab-luck data-i18n="luckNone">全不中</span>
+				<b class="score-fab__value" data-sc-fab-score>—</b>
+			</button>
 		</div>
 	</main>
 
@@ -449,9 +470,9 @@
 	<template id="save-row">
 		<tr>
 			<td class="name-cell" data-s-name></td>
-			<td class="hand-cell" data-s-hand></td>
+			<td class="hand-cell hide-on-narrow" data-s-hand></td>
 			<td class="score-cell" data-s-score></td>
-			<td class="time-cell" data-s-time></td>
+			<td class="time-cell hide-on-narrow" data-s-time></td>
 			<td class="actions-cell">
 				<div class="action-list">
 					<button class="button" type="button" data-s-load-button data-i18n="load">读取</button>
@@ -481,7 +502,9 @@
 			<div class="stack">
 				<p><b data-sc-formatted-score></b></p>
 				<pre class="exact-score" data-sc-score></pre>
-				<span class="badge"><span data-i18n="luckLabel">运气：</span><b data-sc-luck></b></span>
+				<span class="badge luck-switch">
+					<span data-i18n="luckLabel">运气：</span><b data-sc-luck></b>
+				</span>
 			</div>
 		</div>
 	</template>
