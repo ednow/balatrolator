@@ -3,11 +3,14 @@ import { balanceMultWithLuck } from './balanceMultWithLuck.ts'
 import { formatScore } from './formatScore.ts'
 import { isFaceCard, isRank } from './cards.ts'
 import { resolveJoker } from './resolveJokers.ts'
-import { doBigMath } from './doBigMath.ts'
+import { doBigMath, type ScoreValueFormatter } from './doBigMath.ts'
 import { getHand } from './getHand.ts'
 import type { Card, HandName, Joker, Luck, Result, ScoreValue, State } from './types.ts'
 
-export function calculateScore (unresolvedState: State): {
+export function calculateScore (
+	unresolvedState: State,
+	options?: { formatScoreValue?: ScoreValueFormatter },
+): {
 	hand: HandName
 	scoringCards: Card[]
 	results: Result[]
@@ -29,7 +32,7 @@ export function calculateScore (unresolvedState: State): {
 
 	const results = LUCKS.map<Result>((luck) => {
 		const scoreValues = getScore(state, playedHand, scoringCards, luck)
-		const { chips, multiplier, score, log } = doBigMath(scoreValues, state.deck)
+		const { chips, multiplier, score, log } = doBigMath(scoreValues, state.deck, options?.formatScoreValue)
 
 		return {
 			chips,

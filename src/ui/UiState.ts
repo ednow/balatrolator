@@ -1,4 +1,5 @@
 import { LANGUAGE_CHANGE_EVENT, getLang, t, term } from './i18n.ts'
+import { formatScoreValueForUi } from './scoreLogFormat.ts'
 import { initMobileUi, isMobileUi } from './mobileUi.ts'
 import './components/ComboBox.ts'
 
@@ -103,6 +104,10 @@ interface ScoreFabAnchor {
 let selectedLuck: Luck = 'none'
 let lastScoreHand: HandName = 'High Card'
 let lastScoreResults: Result[] = []
+
+function calculateScoreFromUi (state: State) {
+	return calculateScore(state, { formatScoreValue: formatScoreValueForUi })
+}
 
 for (const resetButton of form.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
 	resetButton.addEventListener('click', () => {
@@ -495,7 +500,7 @@ export function init () {
 		populateSavesUi()
 		if (form.checkValidity()) {
 			const current = readStateFromUi()
-			const { hand, results } = calculateScore(current)
+			const { hand, results } = calculateScoreFromUi(current)
 			updateScore(hand, results)
 		}
 	})
@@ -577,7 +582,7 @@ function handleSaveSubmit (event: SubmitEvent) {
 	const formData = new FormData(form)
 	const name = formData.get('name') as Exclude<FormDataEntryValue, File> | null ?? `Save ${saveManager.saves.length - 1}`
 
-	const { hand, results } = calculateScore(state)
+	const { hand, results } = calculateScoreFromUi(state)
 	saveManager.save(name, state, hand, results)
 	storeSaves()
 }
@@ -630,7 +635,7 @@ function handleImportSubmit (event: SubmitEvent) {
 			const saveName = existingSave !== undefined ? `${fileName} copy` : fileName
 			const state = JSON.parse(fileReader.result) as State
 			state.jokerSet = new Set(state.jokers.map(({ name }) => name))
-			const { hand, results } = calculateScore(state)
+			const { hand, results } = calculateScoreFromUi(state)
 			saveManager.save(saveName, state, hand, results)
 			storeSaves()
 
@@ -644,7 +649,7 @@ function handleImportSubmit (event: SubmitEvent) {
 }
 
 function applyState (state: State) {
-	const { hand, results } = calculateScore(state)
+	const { hand, results } = calculateScoreFromUi(state)
 	updateScore(hand, results)
 	saveStateToUrl(state)
 

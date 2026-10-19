@@ -3,9 +3,18 @@ import { Decimal } from 'decimal.js'
 import { formatScoreValue } from './formatScoreValue.ts'
 import type { DeckName, ScoreValue } from './types.ts'
 
+export type ScoreValueFormatter = (
+	scoreValue: ScoreValue,
+	currentScoreValue: { chips: string, multiplier: string },
+) => string
+
 Decimal.set({ precision: 64 })
 
-export function doBigMath (scoreValues: ScoreValue[], deck: DeckName): {
+export function doBigMath (
+	scoreValues: ScoreValue[],
+	deck: DeckName,
+	formatScoreValueFn: ScoreValueFormatter = formatScoreValue,
+): {
 	chips: string
 	multiplier: string
 	score: string
@@ -24,7 +33,7 @@ export function doBigMath (scoreValues: ScoreValue[], deck: DeckName): {
 			multiplier = multiplier[operator === '+' ? 'add' : 'mul'](value)
 		}
 
-		const formattedScoreValue = formatScoreValue(scoreValue, {
+		const formattedScoreValue = formatScoreValueFn(scoreValue, {
 			chips: chips.toString(),
 			multiplier: multiplier.toString(),
 		})
