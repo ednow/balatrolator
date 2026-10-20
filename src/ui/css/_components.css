@@ -267,7 +267,7 @@ html.mobile-ui .introduction-version code {
 }
 
 .observatory-card:not(.increase-specificity) {
-	max-inline-size: calc(32rem + 0.5rem);
+	max-inline-size: 46rem;
 }
 
 .round-data-card {
@@ -290,9 +290,21 @@ html.mobile-ui .introduction-version code {
 
 .r-observatory-input-list {
 	display: grid;
-	/* Wide enough that the round panel keeps three columns, and hand names stay intact. */
-	grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+	/* Wide enough for a planet name plus its poker hand in both Chinese and English. */
+	grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr));
 	gap: 0.35rem 0.75rem;
+}
+
+.form__round .list {
+	container-type: inline-size;
+}
+
+/* Drop the observatory to its own full-width row when the other round inputs leave it too little room. */
+@container (max-width: 96rem) {
+	.form__round .list > .observatory-card {
+		flex: 1 0 100%;
+		max-inline-size: none;
+	}
 }
 
 .r-observatory-input-list.stack > * + * {
@@ -300,8 +312,15 @@ html.mobile-ui .introduction-version code {
 }
 
 .r-observatory-input-list .label {
+	display: inline-flex;
+	flex-wrap: wrap;
+	column-gap: 0.25rem;
 	min-inline-size: 0;
 	white-space: normal;
+}
+
+.r-observatory-input-list .control-box > .label {
+	flex-shrink: 1;
 }
 
 .r-observatory-input-list .observatory-hand {
