@@ -515,10 +515,11 @@ export function init () {
 	initMobileBackGesture()
 	initScoreFab()
 
-	const copyStateButton = document.querySelector<HTMLButtonElement>('[data-copy-state]')
-	copyStateButton?.addEventListener('click', () => {
-		void copyCurrentStateDescription()
-	})
+	for (const copyStateButton of document.querySelectorAll<HTMLButtonElement>('[data-copy-state]')) {
+		copyStateButton.addEventListener('click', () => {
+			void copyCurrentStateDescription()
+		})
+	}
 
 	window.addEventListener(LANGUAGE_CHANGE_EVENT, () => {
 		dateTimeFormat = createDateTimeFormat()
