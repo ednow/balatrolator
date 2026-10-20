@@ -62,18 +62,20 @@ function getHandLevels (initialHandLevels: InitialHandLevels): HandLevels {
 	return Object.fromEntries(handLevelEntries) as HandLevels
 }
 
+export function getHandBaseScore (handName: HandName, level: number): BaseScore {
+	const defaultScore = DEFAULT_HAND_SCORE_SETS[handName]
+	const levelBasedScore = PLANET_SCORE_SETS[handName]
+
+	// Hand levels start at level 1 which effectively adds the default score sets. It is, however, possible that hand levels are set to 0. Then, the default score set doesn't apply
+	return {
+		chips: level === 0 ? 0 : (defaultScore.chips + (level - 1) * levelBasedScore.chips),
+		multiplier: level === 0 ? 0 : (defaultScore.multiplier + (level - 1) * levelBasedScore.multiplier),
+	}
+}
+
 function getHandBaseScores (handLevels: HandLevels): HandScore {
 	const handLevelEntries = Object.entries(handLevels) as [HandName, HandLevel][]
-	const handBaseScoresEntries = handLevelEntries.map<[HandName, BaseScore]>(([handName, { level }]) => {
-		const defaultScore = DEFAULT_HAND_SCORE_SETS[handName]
-		const levelBasedScore = PLANET_SCORE_SETS[handName]
-
-		// Hand levels start at level 1 which effectively adds the default score sets. It is, however, possible that hand levels are set to 0. Then, the default score set doesn't apply
-		const chips = level === 0 ? 0 : (defaultScore.chips + (level - 1) * levelBasedScore.chips)
-		const multiplier = level === 0 ? 0 : (defaultScore.multiplier + (level - 1) * levelBasedScore.multiplier)
-
-		return [handName, { chips, multiplier }]
-	})
+	const handBaseScoresEntries = handLevelEntries.map<[HandName, BaseScore]>(([handName, { level }]) => [handName, getHandBaseScore(handName, level)])
 
 	return Object.fromEntries(handBaseScoresEntries) as HandScore
 }

@@ -1,5 +1,6 @@
 import { html } from 'lit-html'
 
+import { getHandBaseScore } from '#lib/getState.ts'
 import type { HandLevel, HandName } from '#lib/types.ts'
 import { t, term } from '#ui/i18n.ts'
 import { BaseElement } from './BaseElement.ts'
@@ -34,7 +35,30 @@ const lightCss = /*css*/`
 		min-inline-size: 0;
 	}
 
+	.hlc-heading {
+		display: flex;
+		align-items: baseline;
+		gap: 0.35rem;
+		min-inline-size: 0;
+	}
+
 	.hlc-hand-name {
+		font-weight: bold;
+	}
+
+	.hlc-base-score {
+		font-size: 0.9em;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.hlc-chips {
+		color: var(--c-log-chips);
+		font-weight: bold;
+	}
+
+	.hlc-mult {
+		color: var(--c-log-mult);
 		font-weight: bold;
 	}
 
@@ -50,14 +74,23 @@ const lightCss = /*css*/`
 		gap: 0.35rem;
 	}
 
-	html.mobile-ui hand-level-card .hlc-hand-name {
+	html.mobile-ui hand-level-card .hlc-heading {
 		flex: 1 1 auto;
+		min-inline-size: 0;
+	}
+
+	html.mobile-ui hand-level-card .hlc-hand-name {
+		flex: 0 1 auto;
 		min-inline-size: 0;
 		font-size: 0.9em;
 		font-weight: normal;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	html.mobile-ui hand-level-card .hlc-base-score {
+		flex: 0 0 auto;
 	}
 
 	html.mobile-ui hand-level-card .hlc-row .input-list {
@@ -125,12 +158,20 @@ export class HandLevelCard extends BaseElement {
 	}
 
 	template () {
+		const { chips, multiplier } = getHandBaseScore(this.handName, this.level)
+
 		return html`
 			<fieldset class="hlc-fieldset">
 				<legend class="visually-hidden">${term(this.handName)}</legend>
 
 				<div class="hlc-row">
-					<span class="hlc-hand-name">${term(this.handName)}</span>
+					<div class="hlc-heading">
+						<span class="hlc-hand-name">${term(this.handName)}</span>
+
+						<span class="hlc-base-score">
+							<span class="hlc-chips">${chips}</span>×<span class="hlc-mult">${multiplier}</span>
+						</span>
+					</div>
 
 					<div class="input-list">
 						<label class="control-box --flat --grow">
