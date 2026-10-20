@@ -153,6 +153,24 @@ test.describe('Jokers', () => {
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1****0*0*1*2-')
 	})
 
+	test('recovers after a search with no matches', async ({ page }) => {
+		await page.goto('/')
+
+		await page.locator('[data-j-container]').dblclick()
+
+		const name = page.locator('[name^="joker-name-"]')
+		await name.getByRole('button', { name: /^Show joker options$/ }).click()
+		const nameInput = name.getByRole('combobox', { name: /^Filter jokers$/ })
+		const nameOptions = name.getByRole('listbox', { name: /^Jokers$/ })
+
+		await nameInput.fill('zzz')
+		await expect(nameOptions.getByRole('option')).toHaveCount(0)
+
+		await nameInput.fill('camp')
+		await expect(nameOptions.getByRole('option')).toHaveCount(1)
+		await expect(nameOptions.getByRole('option')).toHaveText('Campfire')
+	})
+
 	test('show/hide dependent fields when switching joker', async ({ page }) => {
 		await page.goto('/')
 
