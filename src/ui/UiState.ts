@@ -132,7 +132,7 @@ async function copyCurrentStateDescription () {
 	}
 }
 
-for (const resetButton of form.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
+for (const resetButton of document.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
 	resetButton.addEventListener('click', () => {
 		populateUiWithState(getState({}))
 	})

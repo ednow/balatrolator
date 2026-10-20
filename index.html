@@ -38,12 +38,21 @@
 						<div class="introduction-meta">
 							<p class="introduction-version"><span data-i18n="versionShort">版本</span> <code>1.0.1o</code></p>
 
-							<div class="form__mobile-triggers hide-on-wide">
+							<div class="form__mobile-triggers">
 								<button class="button" type="button" data-mobile-panel-open="hands" data-i18n="levels">等级</button>
 								<button class="button" type="button" data-mobile-panel-open="round" data-i18n="roundShort">回合</button>
 								<button class="button" type="button" data-mobile-panel-open="saves" data-i18n="saves">存档</button>
 								<button class="button" type="button" data-copy-state data-i18n="copyState">复制</button>
+								<button class="button" type="button" data-sc-reset-button data-i18n="resetAllShort">清空</button>
 							</div>
+
+							<button class="button hide-on-narrow" type="button" data-sc-reset-button>
+								<svg class="icon">
+									<use xlink:href="#broom-icon"></use>
+								</svg>
+
+								<span data-i18n="resetAll">清空对局数据</span>
+							</button>
 
 							<div class="lang-switch" data-i18n-aria="language">
 								<button class="button" type="button" data-set-lang="zh" aria-pressed="true" data-i18n="langZhShort">中</button>
