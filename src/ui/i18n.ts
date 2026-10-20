@@ -1,4 +1,4 @@
-import { zhEditions, zhEnhancements, zhSeals, zhTerms } from './zh-terms.ts'
+import { zhEditions, zhEnhancements, zhSealColors, zhSeals, zhTerms } from './zh-terms.ts'
 
 export type Lang = 'en' | 'zh'
 
@@ -87,6 +87,7 @@ const en = {
 	resetHand: 'Reset current hand',
 	playedHand: 'Hand: ',
 	log: 'Log',
+	expandLog: 'Expand log',
 	logPhaseBase: 'base',
 	logPhasePlayedCards: 'played-cards',
 	logPhaseHeldCards: 'held-cards',
@@ -217,6 +218,7 @@ const zh: typeof en = {
 	resetHand: '重置当前手牌',
 	playedHand: '牌型：',
 	log: '记录',
+	expandLog: '展开记录',
 	logPhaseBase: '基础',
 	logPhasePlayedCards: '打出',
 	logPhaseHeldCards: '手牌',
@@ -318,6 +320,14 @@ export function termSeal (name: string): string {
 	}
 
 	return zhSeals[name] ?? name
+}
+
+export function termSealColor (name: string): string {
+	if (lang === 'en') {
+		return termSeal(name)
+	}
+
+	return zhSealColors[name] ?? termSeal(name)
 }
 
 function setLang (next: Lang) {

@@ -573,23 +573,23 @@ export class PlayingCard extends MovableCard {
 						<button><selectedcontent></selectedcontent></button>
 						<option value="None" selected>
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: transparent"></span>
-							<span data-term-kind="seal" data-term-label="None"></span>
+							<span data-term-kind="seal-color" data-term-label="None"></span>
 						</option>
 						<option value="Gold">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-gold)"></span>
-							<span data-term-kind="seal" data-term-label="Gold"></span>
+							<span data-term-kind="seal-color" data-term-label="Gold"></span>
 						</option>
 						<option value="Red">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-red)"></span>
-							<span data-term-kind="seal" data-term-label="Red"></span>
+							<span data-term-kind="seal-color" data-term-label="Red"></span>
 						</option>
 						<option value="Blue">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-blue)"></span>
-							<span data-term-kind="seal" data-term-label="Blue"></span>
+							<span data-term-kind="seal-color" data-term-label="Blue"></span>
 						</option>
 						<option value="Purple">
 							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-purple)"></span>
-							<span data-term-kind="seal" data-term-label="Purple"></span>
+							<span data-term-kind="seal-color" data-term-label="Purple"></span>
 						</option>
 					</select>
 				</label>

@@ -386,6 +386,10 @@
 								</svg>
 							</button>
 
+							<button class="button hide-on-narrow" type="button" data-sc-log-expand hidden>
+								<span data-i18n="expandLog">展开记录</span>
+							</button>
+
 							<button class="button" type="button" data-sc-reset-button>
 								<svg class="icon">
 									<use xlink:href="#broom-icon"></use>
@@ -406,7 +410,7 @@
 							<div class="stack score-and-log__log">
 								<h3 class="score-and-log__log-heading hide-on-wide" data-i18n="log">记录</h3>
 
-								<pre class="log" data-sc-log></pre>
+								<div class="log" data-sc-log></div>
 							</div>
 						</div>
 					</div>
@@ -474,6 +478,22 @@
 
 			<button class="button" type="button" data-c-duplicate-button data-i18n="ok">确定</button>
 		</div>
+	</dialog>
+
+	<dialog id="sc-log-modal" class="log-modal" closedby="any" aria-labelledby="sc-log-modal-heading">
+		<div class="log-modal__header">
+			<h2 id="sc-log-modal-heading" data-i18n="log">记录</h2>
+
+			<button class="button --icon push-inline-start" type="button" data-modal-close-button>
+				<span class="visually-hidden" data-i18n="close">关闭</span>
+
+				<svg class="icon">
+					<use xlink:href="#close-icon"></use>
+				</svg>
+			</button>
+		</div>
+
+		<div class="log log-modal__body" data-sc-log-modal></div>
 	</dialog>
 
 	<template id="save-row">

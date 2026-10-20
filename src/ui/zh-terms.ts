@@ -151,6 +151,7 @@ export const zhTerms: Record<string, string> = {
 	'Ramen': '拉面',
 	'Red Card': '红牌',
 	'Red Deck': '红色牌组',
+	'Red Seal': '红色蜡封',
 	'Reserved Parking': '私人车位',
 	'Ride the Bus': '搭乘巴士',
 	'Riff-Raff': '乌合之众',
@@ -267,4 +268,11 @@ export const zhSeals: Record<string, string> = {
 	'None': '无',
 	'Purple': '紫色蜡封',
 	'Red': '红色蜡封',
+}
+
+export const zhSealColors: Record<string, string> = {
+	'Blue': '蓝色',
+	'Gold': '金色',
+	'Purple': '紫色',
+	'Red': '红色',
 }

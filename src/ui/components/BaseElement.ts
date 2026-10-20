@@ -1,6 +1,6 @@
 import { html, render } from 'lit-html'
 
-import { LANGUAGE_CHANGE_EVENT, term, termSeal } from '#ui/i18n.ts'
+import { LANGUAGE_CHANGE_EVENT, term, termSeal, termSealColor } from '#ui/i18n.ts'
 import { uniqueId } from '#ui/uniqueId.ts'
 
 export class BaseElement extends HTMLElement {
@@ -91,7 +91,11 @@ export class BaseElement extends HTMLElement {
 		render(this.template(), this)
 		for (const el of this.querySelectorAll<HTMLElement>('[data-term-label]')) {
 			const label = el.dataset.termLabel ?? ''
-			el.textContent = el.dataset.termKind === 'seal' ? termSeal(label) : term(label)
+			el.textContent = el.dataset.termKind === 'seal'
+				? termSeal(label)
+				: el.dataset.termKind === 'seal-color'
+					? termSealColor(label)
+					: term(label)
 		}
 	}
 

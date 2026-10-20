@@ -1,6 +1,6 @@
 import { LANGUAGE_CHANGE_EVENT, getLang, t, term } from './i18n.ts'
 import { describeGameState } from './describeGameState.ts'
-import { formatScoreValueForUi } from './scoreLogFormat.ts'
+import { formatScoreValueForUi, renderScoreLog } from './scoreLogFormat.ts'
 import { initMobileUi, isMobileUi } from './mobileUi.ts'
 import './components/ComboBox.ts'
 
@@ -85,7 +85,10 @@ playingCardContainer.addEventListener('dblclick', (event) => {
 
 const scoreCardContainer = form.querySelector<HTMLElement>('[data-sc-container]')!
 const playedHandEl = form.querySelector<HTMLElement>('[data-sc-played-hand]')!
-const scoreLogEl = form.querySelector<HTMLPreElement>('[data-sc-log]')!
+const scoreLogEl = form.querySelector<HTMLElement>('[data-sc-log]')!
+const scoreLogModalEl = document.querySelector<HTMLDialogElement>('#sc-log-modal')!
+const scoreLogModalBodyEl = scoreLogModalEl.querySelector<HTMLElement>('[data-sc-log-modal]')!
+const scoreLogExpandButton = form.querySelector<HTMLButtonElement>('[data-sc-log-expand]')!
 const scoreFabEl = document.querySelector<HTMLButtonElement>('[data-sc-fab]')!
 const scoreFabLuckEl = document.querySelector<HTMLElement>('[data-sc-fab-luck]')!
 const scoreFabValueEl = document.querySelector<HTMLElement>('[data-sc-fab-score]')!
@@ -186,6 +189,28 @@ function updateScoreFab (result: Result) {
 	scoreFabEl.classList.add(`score-fab--luck-${result.luck}`)
 	scoreFabLuckEl.textContent = luckLabel(result.luck)
 	scoreFabValueEl.textContent = result.formattedScore
+	scoreFabValueEl.title = result.formattedScore
+	fitScoreFabValue()
+}
+
+const SCORE_FAB_MIN_FONT_SIZE_PX = 7
+
+/**
+ * Shrinks the score text to fit the circle instead of truncating it with an ellipsis.
+ */
+function fitScoreFabValue () {
+	scoreFabValueEl.style.fontSize = ''
+
+	const availableWidth = scoreFabValueEl.clientWidth
+	if (availableWidth === 0 || scoreFabValueEl.scrollWidth <= availableWidth) {
+		return
+	}
+
+	let fontSize = parseFloat(getComputedStyle(scoreFabValueEl).fontSize)
+	while (fontSize > SCORE_FAB_MIN_FONT_SIZE_PX && scoreFabValueEl.scrollWidth > availableWidth) {
+		fontSize = Math.max(SCORE_FAB_MIN_FONT_SIZE_PX, fontSize - 0.5)
+		scoreFabValueEl.style.fontSize = `${fontSize}px`
+	}
 }
 
 function readScoreFabAnchor (): ScoreFabAnchor | null {
@@ -479,8 +504,26 @@ function initMobilePanels () {
 	}
 }
 
+function initScoreLogModal () {
+	scoreLogExpandButton.addEventListener('click', () => {
+		if (!scoreLogModalEl.open) {
+			scoreLogModalEl.showModal()
+		}
+	})
+
+	scoreLogModalEl.addEventListener('close', () => {
+		scoreLogExpandButton.focus()
+	})
+
+	window.addEventListener('resize', () => updateLogExpandButton())
+}
+
 function onMobileUiChange () {
 	closeMobilePanelsUi()
+
+	if (scoreLogModalEl.open) {
+		scoreLogModalEl.close()
+	}
 
 	if (mobilePanelOnHistoryStack) {
 		if (isMobileUi()) {
@@ -514,6 +557,7 @@ export function init () {
 	initMobilePanels()
 	initMobileBackGesture()
 	initScoreFab()
+	initScoreLogModal()
 
 	for (const copyStateButton of document.querySelectorAll<HTMLButtonElement>('[data-copy-state]')) {
 		copyStateButton.addEventListener('click', () => {
@@ -740,11 +784,22 @@ function renderScoreUi (hand: HandName, results: Result[]) {
 
 	if (isMobileUi()) {
 		const active = results.find((result) => result.luck === selectedLuck) ?? results[0]!
-		scoreLogEl.textContent = active.log.join('\n')
+		renderScoreLogUi([active.log])
 		updateScoreFab(active)
 	} else {
-		scoreLogEl.textContent = resultArray.map((result) => result.log.join('\n')).join('\n\n')
+		renderScoreLogUi(resultArray.map((result) => result.log))
 	}
+}
+
+function renderScoreLogUi (logs: string[][]) {
+	scoreLogEl.replaceChildren(renderScoreLog(logs))
+	scoreLogModalBodyEl.replaceChildren(renderScoreLog(logs))
+	updateLogExpandButton()
+}
+
+function updateLogExpandButton () {
+	scoreLogExpandButton.hidden = isMobileUi()
+		|| scoreLogEl.scrollHeight <= scoreLogEl.clientHeight + 1
 }
 
 function updateScore (hand: HandName, results: Result[]) {
