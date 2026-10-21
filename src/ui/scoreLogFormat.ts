@@ -1,6 +1,6 @@
 import { RANKS } from '#lib/data.ts'
 import { formatScoreValue } from '#lib/formatScoreValue.ts'
-import type { Card, Joker, ScoreValue, Suit } from '#lib/types.ts'
+import type { Card, Joker, JokerName, ScoreValue, Suit } from '#lib/types.ts'
 
 import { getLang, t, term, termEdition, termEnhancement, termSealColor, type UiKey } from './i18n.ts'
 
@@ -203,20 +203,43 @@ function renderScoreLogLine (line: string): HTMLDivElement {
 	return element
 }
 
+export interface ScoreLogSection {
+	log: readonly string[]
+	disabledJokerName?: JokerName
+	title?: string
+}
+
 /**
  * Renders one or more logs (one per luck value) into structured, color-coded lines.
  */
-export function renderScoreLog (logs: readonly string[][]): DocumentFragment {
+export function renderScoreLog (sections: readonly ScoreLogSection[]): DocumentFragment {
 	const fragment = document.createDocumentFragment()
 
-	logs.forEach((log, logIndex) => {
-		if (logIndex > 0) {
+	sections.forEach((section, sectionIndex) => {
+		if (sectionIndex > 0) {
 			const separator = document.createElement('div')
 			separator.className = 'log__separator'
 			fragment.append(separator)
 		}
 
-		for (const line of log) {
+		if (section.title) {
+			const title = document.createElement('div')
+			title.className = 'log__section-title'
+			title.textContent = section.title
+			fragment.append(title)
+		}
+
+		if (section.disabledJokerName) {
+			const line = document.createElement('div')
+			line.className = 'log__line log__line--disabled'
+			line.append(
+				createLogSpan('log__phase', t('logDisabledJoker')),
+				createLogSpan('log__value', term(section.disabledJokerName)),
+			)
+			fragment.append(line)
+		}
+
+		for (const line of section.log) {
 			fragment.append(renderScoreLogLine(line))
 		}
 	})

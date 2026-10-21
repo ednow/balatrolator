@@ -23,9 +23,23 @@
 	flex: 2;
 }
 
-.saves {
+.header .saves {
+	display: none;
 	flex: 3;
 	min-inline-size: 0;
+}
+
+.header .saves.--mobile-open {
+	display: block;
+	position: fixed;
+	z-index: 50;
+	inset: 0.5rem;
+	overflow: auto;
+	margin: 0;
+}
+
+.header .saves.--mobile-open .hide-on-wide {
+	display: revert;
 }
 
 .form {
@@ -34,36 +48,141 @@
 		'hands round round'
 		'hands jokers jokers'
 		'hands cards cards'
-		'hands score score'
+		'score score score'
 	;
 	grid-template-columns: 14rem minmax(0, 1fr) minmax(0, 2fr);
 	gap: 0.5rem;
 }
 
-.form__mobile-triggers {
-	display: none;
+html:not(.mobile-ui) .form {
+	grid-template-rows: auto auto auto minmax(24rem, 1fr);
+}
+
+html:not(.mobile-ui) .form__hands {
+	display: flex;
+	flex-direction: column;
+	align-self: start;
+	max-block-size: 45vh;
+}
+
+html:not(.mobile-ui) .form__hands > .stack {
+	display: flex;
+	flex-direction: column;
+	min-block-size: 0;
+	overflow-y: auto;
+}
+
+html:not(.mobile-ui) .form__hands .panel-header {
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 1;
+	display: flex;
+	inline-size: 100%;
+	background-color: var(--c-background-light);
+}
+
+html:not(.mobile-ui) .main-content > .stack {
+	display: flex;
+	flex-direction: column;
+	block-size: calc(100dvh - 1rem);
+	min-block-size: 0;
+}
+
+html:not(.mobile-ui) .main-content > .stack > .form {
+	flex: 1 1 auto;
+	min-block-size: 0;
+}
+
+.header-actions {
+	display: flex;
+	flex: 1 1 auto;
+	justify-content: center;
 	gap: 0.25rem;
 	flex-wrap: nowrap;
+	min-inline-size: 0;
 }
 
-.score-and-log {
+.header-actions .button {
+	min-block-size: 1.75rem;
+	padding-inline: 0.45rem;
+}
+
+.score-sections {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+	grid-template-columns: minmax(0, 1fr);
 	gap: 0.5rem;
-	align-items: start;
 }
 
-.score-and-log__log-heading {
+.score-section {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	min-block-size: 0;
+}
+
+.score-section__log-heading {
 	font-size: 1em;
 	font-weight: bold;
 	margin: 0;
+}
+
+/* Let each luck section use the full height of the score panel instead of being capped at 15rem. */
+html:not(.mobile-ui) .form__score > .stack {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	block-size: 100%;
+}
+
+html:not(.mobile-ui) .form__score > .stack > * + * {
+	margin-block-start: 0;
+}
+
+html:not(.mobile-ui) .score-sections {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-rows: minmax(0, 1fr);
+	flex: 1 1 auto;
+	min-block-size: 0;
+	align-items: stretch;
+}
+
+html:not(.mobile-ui) .score-sections[data-count="2"] {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* A single distinct result shows its calculation next to the score card instead of below it. */
+html:not(.mobile-ui) .score-sections[data-count="1"] .score-section {
+	display: grid;
+	grid-column: 1 / -1;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+	grid-template-rows: minmax(0, 1fr);
+	column-gap: 0.5rem;
+}
+
+html:not(.mobile-ui) .score-sections[data-count="1"] .score-card {
+	align-self: start;
+}
+
+html:not(.mobile-ui) .score-section {
+	min-block-size: 0;
+	overflow: hidden;
+}
+
+html:not(.mobile-ui) .score-section .score-card {
+	max-inline-size: none;
+}
+
+html:not(.mobile-ui) .score-section .log {
+	flex: 1 1 auto;
+	min-block-size: 0;
+	max-block-size: none;
 }
 
 .luck-switch {
 	font: inherit;
 }
 
-html.mobile-ui body.mobile-panel-open {
+body.mobile-panel-open {
 	overflow: hidden;
 }
 
@@ -213,6 +332,7 @@ html.mobile-ui .card-dropzone {
 
 .introduction .panel-header {
 	display: flex;
+	flex-wrap: nowrap;
 	inline-size: 100%;
 }
 
@@ -220,46 +340,22 @@ html.mobile-ui .card-dropzone {
 	display: flex;
 	align-items: center;
 	flex-wrap: nowrap;
-	gap: 0.35rem;
-	margin-inline-start: auto;
-	min-inline-size: 0;
-}
-
-html.mobile-ui .introduction-meta {
+	gap: 0.25rem;
 	margin-inline-start: 0;
 	inline-size: 100%;
 	justify-content: space-between;
-	gap: 0.25rem;
-}
-
-html.mobile-ui .introduction .panel-header {
-	flex-wrap: nowrap;
-}
-
-html.mobile-ui .form__mobile-triggers {
-	display: flex;
-	flex: 1 1 auto;
-	justify-content: center;
 	min-inline-size: 0;
 }
 
-html.mobile-ui .form__mobile-triggers .button {
-	min-block-size: 1.75rem;
-	padding-inline: 0.45rem;
-}
-
-html.mobile-ui .introduction-version {
-	flex-shrink: 0;
-	font-size: 0.95em;
-}
-
-html.mobile-ui .introduction-version code {
-	font-size: 0.95em;
-}
-
 .introduction-version {
+	flex-shrink: 0;
 	margin: 0;
 	white-space: nowrap;
+	font-size: 0.95em;
+}
+
+.introduction-version code {
+	font-size: 0.95em;
 }
 
 .lang-switch {
@@ -459,6 +555,15 @@ html.mobile-ui .introduction-version code {
 	color: var(--c-text-disabled);
 }
 
+.log__line--disabled .log__phase {
+	color: var(--c-text);
+	font-weight: bold;
+}
+
+.log__line--disabled .log__value {
+	grid-column: 2 / -1;
+}
+
 .log__score {
 	white-space: nowrap;
 }
@@ -498,6 +603,11 @@ html.mobile-ui .introduction-version code {
 .log__separator {
 	grid-column: 1 / -1;
 	block-size: 0.5rem;
+}
+
+.log__section-title {
+	grid-column: 1 / -1;
+	font-weight: bold;
 }
 
 .log-modal {
@@ -557,10 +667,6 @@ html.mobile-ui .header {
 	flex-direction: column;
 }
 
-html.mobile-ui .header .saves {
-	display: none;
-}
-
 html.mobile-ui .form {
 	grid-template-areas:
 		'jokers'
@@ -577,8 +683,7 @@ html.mobile-ui .form__score {
 
 html.mobile-ui .form__hands.--mobile-open,
 html.mobile-ui .form__round.--mobile-open,
-html.mobile-ui .form__score.--mobile-open,
-html.mobile-ui .header .saves.--mobile-open {
+html.mobile-ui .form__score.--mobile-open {
 	display: block;
 	position: fixed;
 	z-index: 50;
@@ -597,15 +702,11 @@ html.mobile-ui .form__score.--mobile-open {
 	border-radius: 0;
 }
 
-html.mobile-ui .score-and-log {
-	grid-template-columns: minmax(0, 1fr);
-}
-
-html.mobile-ui .score-and-log__score .score-card {
+html.mobile-ui .score-section .score-card {
 	max-inline-size: none;
 }
 
-html.mobile-ui .score-and-log__log .log {
+html.mobile-ui .score-section .log {
 	max-block-size: none;
 	overflow: visible;
 }

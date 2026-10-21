@@ -60,6 +60,7 @@ describe('calculateScore', async () => {
 		(await import('./test-files/043.ts')).default('Regression test for #30'),
 		(await import('./test-files/044.ts')).default('Regression test for #32'),
 		(await import('./test-files/045.ts')).default('Regression test for #33'),
+		(await import('./test-files/046.ts')).default('Pair, Crimson Heart'),
 	])('$message', ({ initialState, expected }) => {
 		const score = calculateScore(getState(initialState))
 

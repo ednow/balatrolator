@@ -33,15 +33,55 @@ const lightCss = /*css*/`
 		font-weight: bold;
 	}
 
+	.jc-edition-row {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.jc-edition-row>*+* {
+		margin-block-start: 0.5rem;
+	}
+
+	html:not(.mobile-ui) .jc-edition-row {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem;
+	}
+
+	html:not(.mobile-ui) .jc-edition-row>*+* {
+		margin-block-start: 0;
+	}
+
+	html:not(.mobile-ui) .jc-edition-row>* {
+		flex: 0 1 auto;
+		min-inline-size: 0;
+	}
+
+	html:not(.mobile-ui) .jc-edition-row>.jc-edition {
+		flex: 1 1 auto;
+	}
+
+	html:not(.mobile-ui) joker-card:is(.--has-plus-chips, .--has-plus-multiplier, .--has-times-multiplier) .jc-edition-row>.jc-edition {
+		flex: 0 1 auto;
+	}
+
+	html:not(.mobile-ui) .jc-edition-row>:is(.jc-plus-chips, .jc-plus-multiplier, .jc-times-multiplier) {
+		flex: 1 1 auto;
+	}
+
+	html:not(.mobile-ui) .jc-edition-row :is(.jc-plus-chips-input, .jc-plus-multiplier-input, .jc-times-multiplier-input) {
+		flex: 1 1 auto;
+		inline-size: 4rem;
+		min-inline-size: 0;
+		max-inline-size: 7rem;
+	}
+
 	.jc-edition-input {
 		inline-size: auto;
 		min-inline-size: 4.5rem;
 		max-inline-size: 8.5rem;
 		flex: 1 1 auto;
-	}
-
-	joker-card:not(.--has-plus-chips):not(.--has-plus-multiplier):not(.--has-times-multiplier):not(.--has-is-active):not(.--has-rank):not(.--has-suit) .jc-effects {
-		display: none;
 	}
 
 	joker-card:not(.--has-plus-chips) .jc-plus-chips {
@@ -173,7 +213,7 @@ export class JokerCard extends MovableCard {
 		},
 	}
 
-	constructor (joker?: Omit<Joker, 'index' | 'rarity'>) {
+	constructor (joker?: Pick<Joker, 'name' | 'edition' | 'plusChips' | 'plusMultiplier' | 'timesMultiplier' | 'active' | 'count' | 'rank' | 'suit'>) {
 		super()
 
 		if (!this.id) {
@@ -335,6 +375,8 @@ export class JokerCard extends MovableCard {
 	}
 
 	template () {
+		const definition = JOKER_DEFINITIONS[this.jokerName]
+
 		return html`
 			<div class="stack">
 				<div class="action-list">
@@ -438,28 +480,28 @@ export class JokerCard extends MovableCard {
 					</button>
 				</div>
 
-				<label class="control-box --flat --grow">
-					<span class="label truncate">${t('edition')}</span>
+				<div class="jc-edition-row">
+					<label class="jc-edition control-box --flat --grow">
+						<span class="label truncate">${t('edition')}</span>
 
-					<select
-						id="joker-edition-${this.uniqueId}"
-						name="joker-edition-${this.uniqueId}"
-						.value="${this.edition}"
-						class="jc-edition-input select"
-						@change="${(event: Event) => {
-							const input = event.target as HTMLInputElement
-							this.edition = input.value as JokerEdition
-						}}"
-					>
-						<option value="Base" selected>${termEdition('Base')}</option>
-						<option value="Foil">${termEdition('Foil')}</option>
-						<option value="Holographic">${termEdition('Holographic')}</option>
-						<option value="Polychrome">${termEdition('Polychrome')}</option>
-						<option value="Negative">${termEdition('Negative')}</option>
-					</select>
-				</label>
+						<select
+							id="joker-edition-${this.uniqueId}"
+							name="joker-edition-${this.uniqueId}"
+							.value="${this.edition}"
+							class="jc-edition-input select"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.edition = input.value as JokerEdition
+							}}"
+						>
+							<option value="Base" selected>${termEdition('Base')}</option>
+							<option value="Foil">${termEdition('Foil')}</option>
+							<option value="Holographic">${termEdition('Holographic')}</option>
+							<option value="Polychrome">${termEdition('Polychrome')}</option>
+							<option value="Negative">${termEdition('Negative')}</option>
+						</select>
+					</label>
 
-				<div class="jc-effects stack">
 					<label class="jc-plus-chips control-box --flat --grow">
 						<span class="label truncate">${t('plusChips')}</span>
 
@@ -470,6 +512,8 @@ export class JokerCard extends MovableCard {
 							value="0"
 							.value="${this.plusChips}"
 							min="0"
+							step="${definition.plusChipsStep ?? 1}"
+							?disabled="${!definition.hasPlusChipsInput}"
 							@change="${(event: Event) => {
 								const input = event.target as HTMLInputElement
 								this.plusChips = Number(input.value)
@@ -487,6 +531,8 @@ export class JokerCard extends MovableCard {
 							value="0"
 							.value="${this.plusMultiplier}"
 							min="0"
+							step="${definition.plusMultiplierStep ?? 1}"
+							?disabled="${!definition.hasPlusMultiplierInput}"
 							@change="${(event: Event) => {
 								const input = event.target as HTMLInputElement
 								this.plusMultiplier = Number(input.value)
@@ -504,87 +550,88 @@ export class JokerCard extends MovableCard {
 							value="1"
 							.value="${this.timesMultiplier}"
 							min="1"
-							step="0.05"
+							step="${definition.timesMultiplierStep ?? 1}"
+							?disabled="${!definition.hasTimesMultiplierInput}"
 							@change="${(event: Event) => {
 								const input = event.target as HTMLInputElement
 								this.timesMultiplier = Number(input.value)
 							}}"
 						>
 					</label>
+				</div>
 
-					<div class="jc-card input-list">
-						<label class="jc-rank">
-							<span class="visually-hidden">${t('rank')}</span>
+				<div class="jc-card input-list">
+					<label class="jc-rank">
+						<span class="visually-hidden">${t('rank')}</span>
 
-							<select
-								id="joker-rank-${this.uniqueId}"
-								name="joker-rank-${this.uniqueId}"
-								class="jc-rank-input select"
-								.value="${this.rank}"
-								@change="${(event: Event) => {
-									const input = event.target as HTMLInputElement
-									this.rank = input.value as Rank
-								}}"
-							>
-								<option value="Ace" selected>${term('Ace')}</option>
-								<option value="King">${term('King')}</option>
-								<option value="Queen">${term('Queen')}</option>
-								<option value="Jack">${term('Jack')}</option>
-								<option value="10">${term('10')}</option>
-								<option value="9">${term('9')}</option>
-								<option value="8">${term('8')}</option>
-								<option value="7">${term('7')}</option>
-								<option value="6">${term('6')}</option>
-								<option value="5">${term('5')}</option>
-								<option value="4">${term('4')}</option>
-								<option value="3">${term('3')}</option>
-								<option value="2">${term('2')}</option>
-							</select>
-						</label>
+						<select
+							id="joker-rank-${this.uniqueId}"
+							name="joker-rank-${this.uniqueId}"
+							class="jc-rank-input select"
+							.value="${this.rank}"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.rank = input.value as Rank
+							}}"
+						>
+							<option value="Ace" selected>${term('Ace')}</option>
+							<option value="King">${term('King')}</option>
+							<option value="Queen">${term('Queen')}</option>
+							<option value="Jack">${term('Jack')}</option>
+							<option value="10">${term('10')}</option>
+							<option value="9">${term('9')}</option>
+							<option value="8">${term('8')}</option>
+							<option value="7">${term('7')}</option>
+							<option value="6">${term('6')}</option>
+							<option value="5">${term('5')}</option>
+							<option value="4">${term('4')}</option>
+							<option value="3">${term('3')}</option>
+							<option value="2">${term('2')}</option>
+						</select>
+					</label>
 
-						<span class="jc-card-of">${t('of')}</span>
+					<span class="jc-card-of">${t('of')}</span>
 
-						<label class="jc-suit">
-							<span class="visually-hidden">${t('suit')}</span>
+					<label class="jc-suit">
+						<span class="visually-hidden">${t('suit')}</span>
 
-							<select
-								id="joker-suit-${this.uniqueId}"
-								name="joker-suit-${this.uniqueId}"
-								class="jc-suit-input select"
-								.value="${this.suit}"
-								@change="${(event: Event) => {
-									const input = event.target as HTMLInputElement
-									this.suit = input.value as Suit
-								}}"
-							>
-								<button><selectedcontent></selectedcontent></button>
-								<option value="Clubs" selected>
-									<svg aria-hidden="true" class="icon --small">
-										<use xlink:href="#clubs-icon"></use>
-									</svg>
-									<span data-term-label="Clubs"></span>
-								</option>
-								<option value="Spades">
-									<svg aria-hidden="true" class="icon --small">
-										<use xlink:href="#spades-icon"></use>
-									</svg>
-									<span data-term-label="Spades"></span>
-								</option>
-								<option value="Hearts">
-									<svg aria-hidden="true" class="icon --small">
-										<use xlink:href="#hearts-icon"></use>
-									</svg>
-									<span data-term-label="Hearts"></span>
-								</option>
-								<option value="Diamonds">
-									<svg aria-hidden="true" class="icon --small">
-										<use xlink:href="#diamonds-icon"></use>
-									</svg>
-									<span data-term-label="Diamonds"></span>
-								</option>
-							</select>
-						</label>
-					</div>
+						<select
+							id="joker-suit-${this.uniqueId}"
+							name="joker-suit-${this.uniqueId}"
+							class="jc-suit-input select"
+							.value="${this.suit}"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.suit = input.value as Suit
+							}}"
+						>
+							<button><selectedcontent></selectedcontent></button>
+							<option value="Clubs" selected>
+								<svg aria-hidden="true" class="icon --small">
+									<use xlink:href="#clubs-icon"></use>
+								</svg>
+								<span data-term-label="Clubs"></span>
+							</option>
+							<option value="Spades">
+								<svg aria-hidden="true" class="icon --small">
+									<use xlink:href="#spades-icon"></use>
+								</svg>
+								<span data-term-label="Spades"></span>
+							</option>
+							<option value="Hearts">
+								<svg aria-hidden="true" class="icon --small">
+									<use xlink:href="#hearts-icon"></use>
+								</svg>
+								<span data-term-label="Hearts"></span>
+							</option>
+							<option value="Diamonds">
+								<svg aria-hidden="true" class="icon --small">
+									<use xlink:href="#diamonds-icon"></use>
+								</svg>
+								<span data-term-label="Diamonds"></span>
+							</option>
+						</select>
+					</label>
 				</div>
 			</div>
 		`

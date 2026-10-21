@@ -5,7 +5,12 @@ import type { JokerName } from '#lib/types.ts'
  *
  * **Example**: a “Blueprint” copying “Brainstorm” copying “Sock and Buskin” is resolved as “Sock and Buskin”.
  */
-export function resolveJoker<Joker extends { name: JokerName, index: number }> (jokers: Joker[], target: Joker, visitedIndexes = new Set<number>()): Joker | undefined {
+export function resolveJoker<Joker extends { name: JokerName, index: number, disabled?: boolean }> (jokers: Joker[], target: Joker, visitedIndexes = new Set<number>()): Joker | undefined {
+	// A disabled joker doesn't copy or get copied
+	if (target.disabled === true) {
+		return undefined
+	}
+
 	// Immediately resolve non-copy joker
 	if (target.name !== 'Blueprint' && target.name !== 'Brainstorm') {
 		return target

@@ -91,8 +91,11 @@ export interface JokerDefinition {
 	playedCardEffect?: JokerCardEffect
 	heldCardEffect?: JokerCardEffect
 	hasPlusChipsInput?: boolean
+	plusChipsStep?: number
 	hasPlusMultiplierInput?: boolean
+	plusMultiplierStep?: number
 	hasTimesMultiplierInput?: boolean
+	timesMultiplierStep?: number
 	hasIsActiveInput?: boolean
 	hasRankInput?: boolean
 	hasSuitInput?: boolean
@@ -107,6 +110,7 @@ export interface Joker {
 	rank?: Rank
 	suit?: Suit
 	active: boolean
+	disabled: boolean
 	count: number
 	rarity: 'common' | 'uncommon' | 'rare' | 'legendary'
 	effect?: JokerEffect
@@ -166,4 +170,5 @@ export interface Result {
 	formattedScore: string
 	luck: Luck
 	log: string[]
+	disabledJokerName?: JokerName
 }

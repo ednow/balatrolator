@@ -297,6 +297,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Ceremonial Dagger': {
 		rarity: 'uncommon',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 2,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -408,6 +409,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Steel Joker': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.2,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -516,6 +518,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Ride the Bus': {
 		rarity: 'common',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -552,6 +555,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Runner': {
 		rarity: 'common',
 		hasPlusChipsInput: true,
+		plusChipsStep: 15,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -564,6 +568,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Ice Cream': {
 		rarity: 'common',
 		hasPlusChipsInput: true,
+		plusChipsStep: 5,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -582,6 +587,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Blue Joker': {
 		rarity: 'common',
 		hasPlusChipsInput: true,
+		plusChipsStep: 2,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -597,6 +603,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Constellation': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -609,6 +616,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Hiker': {
 		rarity: 'uncommon',
 		hasPlusChipsInput: true,
+		plusChipsStep: 5,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -624,6 +632,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Green Joker': {
 		rarity: 'common',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -665,6 +674,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Red Card': {
 		rarity: 'common',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 3,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -677,6 +687,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Madness': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.5,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -689,6 +700,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Square Joker': {
 		rarity: 'common',
 		hasPlusChipsInput: true,
+		plusChipsStep: 4,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -707,6 +719,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Vampire': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -722,6 +735,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Hologram': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.25,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -755,6 +769,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Obelisk': {
 		rarity: 'rare',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.2,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -793,6 +808,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Erosion': {
 		rarity: 'uncommon',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 4,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -817,6 +833,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Fortune Teller': {
 		rarity: 'common',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -835,6 +852,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Stone Joker': {
 		rarity: 'uncommon',
 		hasPlusChipsInput: true,
+		plusChipsStep: 25,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -850,6 +868,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Lucky Cat': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.25,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -890,6 +909,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Flash Card': {
 		rarity: 'uncommon',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 2,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -902,6 +922,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Popcorn': {
 		rarity: 'common',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 4,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -914,6 +935,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Spare Trousers': {
 		rarity: 'uncommon',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 2,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -940,6 +962,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Ramen': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.01,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -969,6 +992,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Castle': {
 		rarity: 'uncommon',
 		hasPlusChipsInput: true,
+		plusChipsStep: 3,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -993,6 +1017,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Campfire': {
 		rarity: 'rare',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.25,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -1025,6 +1050,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Swashbuckler': {
 		rarity: 'common',
 		hasPlusMultiplierInput: true,
+		plusMultiplierStep: 1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['+', this.plusMultiplier],
@@ -1046,6 +1072,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Throwback': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.25,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -1067,7 +1094,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 			if (isSuit(card, 'Hearts', state.jokerSet)) {
 				const denominator = 2
 				const xMult = 2
-				const oopses = state.jokers.filter(({ name }) => name === 'Oops! All 6s')
+				const oopses = state.jokers.filter(({ name, disabled }) => name === 'Oops! All 6s' && !disabled)
 				const mult = balanceMultWithLuck(xMult, oopses.length, denominator, luck, 'times')
 
 				score.push({
@@ -1107,6 +1134,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Glass Joker': {
 		rarity: 'uncommon',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.75,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -1174,6 +1202,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Wee Joker': {
 		rarity: 'rare',
 		hasPlusChipsInput: true,
+		plusChipsStep: 8,
 		effect ({ score, trigger }) {
 			score.push({
 				chips: ['+', this.plusChips],
@@ -1223,6 +1252,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Hit the Road': {
 		rarity: 'rare',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 0.5,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -1375,6 +1405,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Canio': {
 		rarity: 'legendary',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],
@@ -1399,6 +1430,7 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	'Yorick': {
 		rarity: 'legendary',
 		hasTimesMultiplierInput: true,
+		timesMultiplierStep: 1,
 		effect ({ score, trigger }) {
 			score.push({
 				multiplier: ['*', this.timesMultiplier],

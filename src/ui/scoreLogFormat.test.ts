@@ -7,7 +7,7 @@ import { formatCardLabel, renderScoreLog } from './scoreLogFormat.ts'
 
 function renderLog (logs: string[][]) {
 	const container = document.createElement('div')
-	container.append(renderScoreLog(logs))
+	container.append(renderScoreLog(logs.map((log) => ({ log }))))
 	return container
 }
 
@@ -78,5 +78,15 @@ describe('renderScoreLog', () => {
 
 	test('translates seal triggers', () => {
 		expect(term('Red Seal')).toBe('红色蜡封')
+	})
+
+	test('shows the disabled joker of a section before its lines', () => {
+		const line = `${t('logPhaseBase')}: ( 5×1 ) ${t('logChips')} +5`
+		const container = document.createElement('div')
+		container.append(renderScoreLog([{ log: [line], disabledJokerName: 'Constellation' }]))
+
+		const disabledLine = container.querySelector('.log__line--disabled')
+		expect(disabledLine?.textContent).toBe(`${t('logDisabledJoker')}${term('Constellation')}`)
+		expect(container.querySelectorAll('.log__line')).toHaveLength(2)
 	})
 })

@@ -114,6 +114,7 @@ function getJoker (initialJoker: InitialJoker, listIndex = 0): Joker {
 		rank,
 		suit,
 		active,
+		disabled: false,
 		count,
 		rarity,
 		effect,

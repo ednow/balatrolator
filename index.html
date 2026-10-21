@@ -33,26 +33,18 @@
 			<div class="header">
 				<div class="introduction panel">
 					<header class="panel-header">
-						<h1 class="hide-on-narrow">Balatrolator</h1>
+						<h1 class="visually-hidden">Balatrolator</h1>
 
 						<div class="introduction-meta">
 							<p class="introduction-version"><span data-i18n="versionShort">版本</span> <code>1.0.1o</code></p>
 
-							<div class="form__mobile-triggers">
-								<button class="button" type="button" data-mobile-panel-open="hands" data-i18n="levels">等级</button>
-								<button class="button" type="button" data-mobile-panel-open="round" data-i18n="roundShort">回合</button>
+							<div class="header-actions">
+								<button class="button hide-on-wide" type="button" data-mobile-panel-open="hands" data-i18n="levels">等级</button>
+								<button class="button hide-on-wide" type="button" data-mobile-panel-open="round" data-i18n="roundShort">回合</button>
 								<button class="button" type="button" data-mobile-panel-open="saves" data-i18n="saves">存档</button>
 								<button class="button" type="button" data-copy-state data-i18n="copyState">复制</button>
 								<button class="button" type="button" data-sc-reset-button data-i18n="resetAllShort">清空</button>
 							</div>
-
-							<button class="button hide-on-narrow" type="button" data-sc-reset-button>
-								<svg class="icon">
-									<use xlink:href="#broom-icon"></use>
-								</svg>
-
-								<span data-i18n="resetAll">清空对局数据</span>
-							</button>
 
 							<div class="lang-switch" data-i18n-aria="language">
 								<button class="button" type="button" data-set-lang="zh" aria-pressed="true" data-i18n="langZhShort">中</button>
@@ -60,27 +52,6 @@
 							</div>
 						</div>
 					</header>
-
-					<p class="hide-on-narrow" data-i18n-html="intro">Balatrolator 是<a href="https://www.playbalatro.com/">小丑牌</a>的计分计算器。去买游戏吧！</p>
-
-					<p class="hide-on-narrow" data-i18n-html="contribute">遇到问题请<a href="https://github.com/kleinfreund/balatrolator/issues/new/choose">反馈</a>。想<a href="https://github.com/kleinfreund/balatrolator">参与贡献</a>？</p>
-
-					<p class="hide-on-narrow" data-i18n-html="credit">由 <a href="https://kleinfreund.de">kleinfreund</a> 用爱制作。</p>
-
-					<p class="hide-on-narrow">
-						<svg class="icon">
-							<use xlink:href="#spades-icon"></use>
-						</svg>
-						<svg class="icon">
-							<use xlink:href="#hearts-icon"></use>
-						</svg>
-						<svg class="icon">
-							<use xlink:href="#clubs-icon"></use>
-						</svg>
-						<svg class="icon">
-							<use xlink:href="#diamonds-icon"></use>
-						</svg>
-					</p>
 				</div>
 
 				<div class="saves panel" data-mobile-panel="saves">
@@ -409,19 +380,9 @@
 							</button>
 						</header>
 
-						<div class="score-and-log">
-							<div class="stack score-and-log__score">
-								<p><span data-i18n="playedHand">牌型：</span><b data-sc-played-hand>—</b></p>
+						<p><span data-i18n="playedHand">牌型：</span><b data-sc-played-hand>—</b></p>
 
-								<div class="list" data-sc-container></div>
-							</div>
-
-							<div class="stack score-and-log__log">
-								<h3 class="score-and-log__log-heading hide-on-wide" data-i18n="log">记录</h3>
-
-								<div class="log" data-sc-log></div>
-							</div>
-						</div>
+						<div class="score-sections" data-sc-container></div>
 					</div>
 				</div>
 			</form>
@@ -537,15 +498,21 @@
 	</template>
 
 	<template id="score-card">
-		<div class="card score-card">
-			<div class="stack">
-				<p><b data-sc-formatted-score></b></p>
-				<pre class="exact-score" data-sc-score></pre>
-				<span class="badge luck-switch">
-					<span data-i18n="luckLabel">运气：</span><b data-sc-luck></b>
-				</span>
+		<section class="score-section">
+			<div class="card score-card">
+				<div class="stack">
+					<p><b data-sc-formatted-score></b></p>
+					<pre class="exact-score" data-sc-score></pre>
+					<span class="badge luck-switch">
+						<span data-i18n="luckLabel">运气：</span><b data-sc-luck></b>
+					</span>
+				</div>
 			</div>
-		</div>
+
+			<h3 class="score-section__log-heading hide-on-wide" data-i18n="log">记录</h3>
+
+			<div class="log" data-sc-card-log></div>
+		</section>
 	</template>
 
 	<svg style="display: none;">

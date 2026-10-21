@@ -1,6 +1,6 @@
 import { LANGUAGE_CHANGE_EVENT, getLang, t, term } from './i18n.ts'
 import { describeGameState } from './describeGameState.ts'
-import { formatScoreValueForUi, renderScoreLog } from './scoreLogFormat.ts'
+import { formatScoreValueForUi, renderScoreLog, type ScoreLogSection } from './scoreLogFormat.ts'
 import { initMobileUi, isMobileUi } from './mobileUi.ts'
 import './components/ComboBox.ts'
 
@@ -108,6 +108,8 @@ function roundToStepPrecision (value: number, step: number) {
 }
 
 document.addEventListener('wheel', (event) => {
+	trackPointerPosition(event)
+
 	const input = getSteppableNumberInput(event.target)
 	if (input === null || event.deltaY === 0) {
 		return
@@ -124,6 +126,63 @@ document.addEventListener('wheel', (event) => {
 	input.dispatchEvent(new Event('input', { bubbles: true }))
 	scheduleNumberInputCommit(input)
 }, { passive: false })
+
+let pointerPosition: { x: number, y: number } | null = null
+
+function trackPointerPosition (event: MouseEvent) {
+	pointerPosition = event instanceof PointerEvent && event.pointerType === 'touch'
+		? null
+		: { x: event.clientX, y: event.clientY }
+}
+
+document.addEventListener('pointermove', trackPointerPosition)
+document.addEventListener('pointerdown', trackPointerPosition)
+document.addEventListener('pointerover', trackPointerPosition)
+
+function getHoveredSteppableNumberInput () {
+	// `:hover` is maintained by the browser, so it stays correct when no `pointermove` is delivered (e.g. after switching windows or scrolling under a stationary pointer).
+	const hoveredElements = document.querySelectorAll(':hover')
+	const hovered = hoveredElements[hoveredElements.length - 1]
+	const hoveredInput = getSteppableNumberInput(hovered ?? null)
+	if (hoveredInput !== null) {
+		return hoveredInput
+	}
+
+	if (pointerPosition === null) {
+		return null
+	}
+
+	return getSteppableNumberInput(document.elementFromPoint(pointerPosition.x, pointerPosition.y))
+}
+
+document.addEventListener('keydown', (event) => {
+	if ((event.key !== 'ArrowUp' && event.key !== 'ArrowDown') || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+		return
+	}
+
+	// Leave arrow keys to an open modal so that its native behavior isn’t hijacked.
+	// A focused control doesn’t otherwise block stepping: after switching windows, focus often stays on an unrelated control, and the hovered input should still respond.
+	const activeElement = document.activeElement
+	if (activeElement instanceof Element && activeElement.closest('dialog[open]') !== null) {
+		return
+	}
+
+	const input = getHoveredSteppableNumberInput()
+	if (input === null) {
+		return
+	}
+
+	event.preventDefault()
+
+	if (event.key === 'ArrowUp') {
+		input.stepUp()
+	} else {
+		input.stepDown()
+	}
+
+	input.dispatchEvent(new Event('input', { bubbles: true }))
+	scheduleNumberInputCommit(input)
+})
 
 const TOUCH_STEP_THRESHOLD_PX = 8
 const TOUCH_STEP_SIZE_PX = 16
@@ -250,7 +309,6 @@ playingCardContainer.addEventListener('dblclick', (event) => {
 
 const scoreCardContainer = form.querySelector<HTMLElement>('[data-sc-container]')!
 const playedHandEl = form.querySelector<HTMLElement>('[data-sc-played-hand]')!
-const scoreLogEl = form.querySelector<HTMLElement>('[data-sc-log]')!
 const scoreLogModalEl = document.querySelector<HTMLDialogElement>('#sc-log-modal')!
 const scoreLogModalBodyEl = scoreLogModalEl.querySelector<HTMLElement>('[data-sc-log-modal]')!
 const scoreLogExpandButton = form.querySelector<HTMLButtonElement>('[data-sc-log-expand]')!
@@ -961,10 +1019,16 @@ function appendScoreCard (result: Result) {
 	const equation = `${result.chips}×${result.multiplier}`
 	scoreEl.textContent = equation + '\n= ' + result.score
 
+	const logEl = fragment.querySelector<HTMLElement>('[data-sc-card-log]')!
+	logEl.replaceChildren(renderScoreLog([result]))
+
 	scoreCardContainer.appendChild(fragment)
 }
 
 function renderScoreUi (hand: HandName, results: Result[]) {
+	playedHandEl.textContent = term(hand)
+
+	scoreCardContainer.innerHTML = ''
 	const resultsByScore = new Map<string, Result>()
 	for (const result of results) {
 		if (!resultsByScore.has(result.score)) {
@@ -972,53 +1036,46 @@ function renderScoreUi (hand: HandName, results: Result[]) {
 		}
 	}
 
-	playedHandEl.textContent = term(hand)
-
-	scoreCardContainer.innerHTML = ''
 	const displayResults = isMobileUi()
 		? [results.find((result) => result.luck === selectedLuck) ?? results[0]!]
 		: Array.from(resultsByScore.values())
+
+	scoreCardContainer.dataset.count = String(displayResults.length)
 
 	for (const result of displayResults) {
 		appendScoreCard(result)
 	}
 
-	const resultArray = isMobileUi() ? results : Array.from(resultsByScore.values())
-
-	let scoreAnnouncement
 	const handName = term(hand)
-	if (resultArray.length === 3) {
-		const scoreLuckNone = results.find((result) => result.luck === 'none')!.formattedScore
-		const scoreLuckAverage = results.find((result) => result.luck === 'average')!.formattedScore
-		const scoreLuckAll = results.find((result) => result.luck === 'all')!.formattedScore
-		scoreAnnouncement = getLang() === 'zh'
-			? `${handName}，平均 ${scoreLuckAverage}，最佳 ${scoreLuckAll}，最差 ${scoreLuckNone}。`
-			: `${hand} scoring ${scoreLuckAverage} on average, ${scoreLuckAll} in the best case, and ${scoreLuckNone} in the worst case.`
-	} else {
-		scoreAnnouncement = getLang() === 'zh'
-			? `${handName}，得分 ${resultArray.at(0)!.formattedScore}。`
-			: `${hand} scoring ${resultArray.at(0)!.formattedScore}.`
-	}
+	const scoreLuckNone = results.find((result) => result.luck === 'none')!.formattedScore
+	const scoreLuckAverage = results.find((result) => result.luck === 'average')!.formattedScore
+	const scoreLuckAll = results.find((result) => result.luck === 'all')!.formattedScore
+	const scoreAnnouncement = getLang() === 'zh'
+		? `${handName}，平均 ${scoreLuckAverage}，最佳 ${scoreLuckAll}，最差 ${scoreLuckNone}。`
+		: `${hand} scoring ${scoreLuckAverage} on average, ${scoreLuckAll} in the best case, and ${scoreLuckNone} in the worst case.`
 	debouncedAriaNotify(scoreAnnouncement)
 
+	renderScoreLogModalUi(displayResults)
+
 	if (isMobileUi()) {
-		const active = results.find((result) => result.luck === selectedLuck) ?? results[0]!
-		renderScoreLogUi([active.log])
-		updateScoreFab(active, hand)
-	} else {
-		renderScoreLogUi(resultArray.map((result) => result.log))
+		updateScoreFab(displayResults[0]!, hand)
 	}
 }
 
-function renderScoreLogUi (logs: string[][]) {
-	scoreLogEl.replaceChildren(renderScoreLog(logs))
-	scoreLogModalBodyEl.replaceChildren(renderScoreLog(logs))
+function renderScoreLogModalUi (results: Result[]) {
+	const sections = results.map<ScoreLogSection>((result) => ({
+		log: result.log,
+		disabledJokerName: result.disabledJokerName,
+		title: luckLabel(result.luck),
+	}))
+	scoreLogModalBodyEl.replaceChildren(renderScoreLog(sections))
 	updateLogExpandButton()
 }
 
 function updateLogExpandButton () {
+	const cardLogs = scoreCardContainer.querySelectorAll<HTMLElement>('.log')
 	scoreLogExpandButton.hidden = isMobileUi()
-		|| scoreLogEl.scrollHeight <= scoreLogEl.clientHeight + 1
+		|| Array.from(cardLogs).every((log) => log.scrollHeight <= log.clientHeight + 1)
 }
 
 function updateScore (hand: HandName, results: Result[]) {
