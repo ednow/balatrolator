@@ -33,11 +33,6 @@ const lightCss = /*css*/`
 		font-weight: bold;
 	}
 
-	.jc-count-input {
-		inline-size: 3.5rem;
-		text-align: end;
-	}
-
 	.jc-edition-input {
 		inline-size: auto;
 		min-inline-size: 4.5rem;
@@ -63,6 +58,11 @@ const lightCss = /*css*/`
 
 	joker-card:not(.--has-is-active) .jc-is-active {
 		display: none;
+	}
+
+	.jc-name-row > label {
+		flex: 1 1 auto;
+		min-inline-size: 0;
 	}
 
 	joker-card:not(.--has-rank):not(.--has-suit) .jc-card {
@@ -396,51 +396,39 @@ export class JokerCard extends MovableCard {
 
 				<span id="${this.tagName.toLowerCase()}-${this.uniqueId}-title" class="visually-hidden">${this.toString()}</span>
 
-				<label>
-					<span class="visually-hidden">${t('jokerName')}</span>
+				<div class="action-list jc-name-row">
+					<label>
+						<span class="visually-hidden">${t('jokerName')}</span>
 
-					<combo-box
-						id="joker-name-${this.uniqueId}"
-						name="joker-name-${this.uniqueId}"
-						class="jc-name-input"
-						value="8 Ball"
-						.value="${this.jokerName}"
-						options-json="jokersJson"
-						button-label="${t('showJokerOptions')}"
-						input-label="${t('filterJokers')}"
-						listbox-label="${t('jokers')}"
-						@change="${(event: Event) => {
-							const combo = event.currentTarget as HTMLInputElement
-							if (event.target !== combo) {
-								return
-							}
-							this.jokerName = combo.value as JokerName
-						}}"
-					></combo-box>
-				</label>
-
-				<div class="action-list">
-					<label class="control-box --flat --grow">
-						<span class="label truncate">${t('count')}</span>
-						<input
-							id="joker-count-${this.uniqueId}"
-							class="jc-count-input text-input"
-							type="number"
-							value="1"
-							.value="${this.count}"
-							min="0"
+						<combo-box
+							id="joker-name-${this.uniqueId}"
+							name="joker-name-${this.uniqueId}"
+							class="jc-name-input"
+							value="8 Ball"
+							.value="${this.jokerName}"
+							options-json="jokersJson"
+							button-label="${t('showJokerOptions')}"
+							input-label="${t('filterJokers')}"
+							listbox-label="${t('jokers')}"
 							@change="${(event: Event) => {
-								const input = event.target as HTMLInputElement
-								this.count = Number(input.value)
+								const combo = event.currentTarget as HTMLInputElement
+								if (event.target !== combo) {
+									return
+								}
+								this.jokerName = combo.value as JokerName
 							}}"
-						>
-						<span class="label truncate" aria-hidden="true">×</span>
+						></combo-box>
 					</label>
 
 					<button
-						class="button --icon"
+						class="button --icon duplicate-button"
 						type="button"
-						@click="${() => this.duplicateInPlace()}"
+						title="${t('duplicateLongPressHint')}"
+						@pointerdown="${this.duplicatePointerDown}"
+						@pointerup="${this.duplicatePointerUp}"
+						@pointercancel="${this.duplicatePointerUp}"
+						@pointerleave="${this.duplicatePointerUp}"
+						@click="${this.duplicateClick}"
 					>
 						<span class="visually-hidden">${t('duplicateJoker')}</span>
 
@@ -602,9 +590,14 @@ export class JokerCard extends MovableCard {
 		`
 	}
 
-	duplicateInPlace () {
-		const copy = this.clone()
-		this.insertAdjacentElement('afterend', copy)
+	duplicateInPlace (count = 1) {
+		const copies = document.createDocumentFragment()
+
+		for (let index = 0; index < count; index++) {
+			copies.append(this.clone())
+		}
+
+		this.after(copies)
 	}
 
 	clone () {

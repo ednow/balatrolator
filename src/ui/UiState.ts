@@ -40,7 +40,7 @@ form.addEventListener('submit', (event) => {
 })
 form.addEventListener('change', () => calculate())
 
-const STEPPABLE_NUMBER_INPUT_ROOTS = '.form__hands, .form__round, .form__jokers'
+const STEPPABLE_NUMBER_INPUT_ROOTS = '.form__hands, .form__round, .form__jokers, #jc-duplicate-modal, #pc-duplicate-modal'
 
 function getSteppableNumberInput (target: EventTarget | null): HTMLInputElement | null {
 	if (!(target instanceof HTMLInputElement) || target.type !== 'number') {
@@ -107,7 +107,7 @@ function roundToStepPrecision (value: number, step: number) {
 	return Number(value.toFixed(decimals))
 }
 
-form.addEventListener('wheel', (event) => {
+document.addEventListener('wheel', (event) => {
 	const input = getSteppableNumberInput(event.target)
 	if (input === null || event.deltaY === 0) {
 		return
@@ -139,7 +139,7 @@ interface TouchStep {
 
 let touchStep: TouchStep | null = null
 
-form.addEventListener('touchstart', (event) => {
+document.addEventListener('touchstart', (event) => {
 	touchStep = null
 
 	if (event.touches.length !== 1) {
@@ -162,7 +162,7 @@ form.addEventListener('touchstart', (event) => {
 	}
 }, { passive: true })
 
-form.addEventListener('touchmove', (event) => {
+document.addEventListener('touchmove', (event) => {
 	if (touchStep === null || event.touches.length !== 1) {
 		return
 	}
@@ -187,7 +187,7 @@ form.addEventListener('touchmove', (event) => {
 	setNumberInputValue(touchStep.input, roundToStepPrecision(touchStep.startValue + steps * touchStep.step, touchStep.step))
 }, { passive: false })
 
-form.addEventListener('touchend', (event) => {
+document.addEventListener('touchend', (event) => {
 	if (touchStep === null) {
 		return
 	}
@@ -201,7 +201,7 @@ form.addEventListener('touchend', (event) => {
 	touchStep = null
 }, { passive: false })
 
-form.addEventListener('touchcancel', () => {
+document.addEventListener('touchcancel', () => {
 	touchStep = null
 })
 
@@ -254,6 +254,7 @@ const scoreLogEl = form.querySelector<HTMLElement>('[data-sc-log]')!
 const scoreLogModalEl = document.querySelector<HTMLDialogElement>('#sc-log-modal')!
 const scoreLogModalBodyEl = scoreLogModalEl.querySelector<HTMLElement>('[data-sc-log-modal]')!
 const scoreLogExpandButton = form.querySelector<HTMLButtonElement>('[data-sc-log-expand]')!
+const scorePanelEl = form.querySelector<HTMLElement>('[data-mobile-panel="score"]')!
 const scoreFabEl = document.querySelector<HTMLButtonElement>('[data-sc-fab]')!
 const scoreFabHandEl = document.querySelector<HTMLElement>('[data-sc-fab-hand]')!
 const scoreFabLuckEl = document.querySelector<HTMLElement>('[data-sc-fab-luck]')!
@@ -320,6 +321,46 @@ for (const dialog of document.querySelectorAll('dialog')) {
 		}
 	}
 }
+
+const DUPLICATE_LONG_PRESS_EVENT = 'card-duplicate-long-press'
+
+function getCopyCount (input: HTMLInputElement) {
+	const count = Math.floor(Number(input.value))
+	return Number.isFinite(count) && count >= 1 ? count : 1
+}
+
+function setupDuplicateDialog<T extends JokerCard | PlayingCard> (
+	dialogSelector: string,
+	container: HTMLElement,
+	isCard: (target: EventTarget | null) => target is T,
+) {
+	const dialog = document.querySelector<HTMLDialogElement>(dialogSelector)!
+	const input = dialog.querySelector<HTMLInputElement>('input[type="number"]')!
+	const confirmButton = dialog.querySelector<HTMLButtonElement>('[data-duplicate-confirm-button]')!
+
+	container.addEventListener(DUPLICATE_LONG_PRESS_EVENT, (event) => {
+		if (!isCard(event.target)) {
+			return
+		}
+
+		dialog.dataset.duplicateTargetId = event.target.id
+		input.value = '1'
+		dialog.showModal()
+		input.focus()
+	})
+
+	confirmButton.addEventListener('click', () => {
+		const target = document.getElementById(dialog.dataset.duplicateTargetId ?? '')
+		if (isCard(target)) {
+			target.duplicateInPlace(getCopyCount(input))
+		}
+
+		dialog.close()
+	})
+}
+
+setupDuplicateDialog('#jc-duplicate-modal', jokerContainer, (target): target is JokerCard => target instanceof JokerCard)
+setupDuplicateDialog('#pc-duplicate-modal', playingCardContainer, (target): target is PlayingCard => target instanceof PlayingCard)
 
 // Re-calculate score after re-ordering cards
 const handleMutation: MutationCallback = (mutationList) => {
@@ -671,11 +712,22 @@ function initMobilePanels () {
 	}
 }
 
+function openScoreLogModal () {
+	if (!scoreLogModalEl.open) {
+		scoreLogModalEl.showModal()
+	}
+}
+
 function initScoreLogModal () {
-	scoreLogExpandButton.addEventListener('click', () => {
-		if (!scoreLogModalEl.open) {
-			scoreLogModalEl.showModal()
+	scoreLogExpandButton.addEventListener('click', openScoreLogModal)
+
+	scorePanelEl.addEventListener('dblclick', (event) => {
+		const target = event.target as Element
+		if (target.closest('button, a, input, select, textarea') !== null) {
+			return
 		}
+
+		openScoreLogModal()
 	})
 
 	scoreLogModalEl.addEventListener('close', () => {

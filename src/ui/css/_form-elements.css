@@ -112,6 +112,12 @@
 	cursor: pointer;
 }
 
+.duplicate-button {
+	flex: 0 0 auto;
+	touch-action: manipulation;
+	user-select: none;
+}
+
 /* TEXT CONTROL */
 
 .text-input {
@@ -135,7 +141,9 @@
 
 html.mobile-ui .form__hands input[type="number"],
 html.mobile-ui .form__round input[type="number"],
-html.mobile-ui .form__jokers input[type="number"] {
+html.mobile-ui .form__jokers input[type="number"],
+html.mobile-ui #jc-duplicate-modal input[type="number"],
+html.mobile-ui #pc-duplicate-modal input[type="number"] {
 	touch-action: pan-x;
 }
 

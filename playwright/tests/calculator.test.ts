@@ -144,13 +144,8 @@ test.describe('Jokers', () => {
 		await page.keyboard.press('Enter')
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*****0*0*1*-')
 
-		const count = page.getByRole('spinbutton', { name: /^Count$/ })
-		await count.fill('2')
-		await count.blur()
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*****0*0*1*2-')
-
 		await page.getByRole('combobox', { name: /^Edition$/ }).selectOption('Foil')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1****0*0*1*2-')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1****0*0*1*-')
 	})
 
 	test('recovers after a search with no matches', async ({ page }) => {
@@ -391,25 +386,20 @@ test.describe('Playing cards', () => {
 		await page.locator('[data-c-container]').dblclick()
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--0*0*****1*')
 
-		const count = page.getByRole('spinbutton', { name: /^Count$/ })
-		await count.fill('2')
-		await count.blur()
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--0*0*****1*2')
-
 		await page.getByRole('combobox', { name: /^Rank$/ }).selectOption('10')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*0*****1*2')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*0*****1*')
 
 		await page.getByRole('combobox', { name: /^Suit$/ }).selectOption('Spades')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*****1*2')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*****1*')
 
 		await page.getByRole('combobox', { name: /^Edition$/ }).selectOption('Foil')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*1****1*2')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*1****1*')
 
 		await page.getByRole('combobox', { name: /^Enhancement$/ }).selectOption('Mult')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*1*2***1*2')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*1*2***1*')
 
 		await page.getByRole('combobox', { name: /^Seal$/ }).selectOption('Gold')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*1*2*1**1*2')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--4*1*1*2*1**1*')
 	})
 
 	test('show/hide debuffed checkbox when The Pillar is active', async ({ page }) => {

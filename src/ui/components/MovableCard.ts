@@ -3,11 +3,14 @@ import { BaseElement } from './BaseElement.ts'
 const registeredContainers = new Set<Element>()
 let isDragging = false
 const FORMAT_PREFIX = 'dragged-element-id:'
+const DUPLICATE_LONG_PRESS_DURATION_MS = 500
 
 let lastDraggedElId: string | null = null
 
-export class MovableCard extends BaseElement {
+export abstract class MovableCard extends BaseElement {
 	#container: HTMLElement | undefined
+	#duplicatePressTimer: ReturnType<typeof setTimeout> | undefined
+	#duplicateLongPressed = false
 
 	constructor () {
 		super()
@@ -40,11 +43,49 @@ export class MovableCard extends BaseElement {
 	disconnectedCallback () {
 		super.disconnectedCallback()
 
+		this.#cancelDuplicatePress()
+
 		if (this.#container) {
 			registeredContainers.delete(this.#container)
 			this.#container.removeEventListener('dragenter', this.#handleDragOver)
 			this.#container.removeEventListener('dragover', this.#handleDragOver)
 			this.#container = undefined
+		}
+	}
+
+	abstract duplicateInPlace (count: number): void
+
+	duplicatePointerDown = (event: PointerEvent) => {
+		if (event.button !== 0) {
+			return
+		}
+
+		this.#cancelDuplicatePress()
+		this.#duplicateLongPressed = false
+		this.#duplicatePressTimer = setTimeout(() => {
+			this.#duplicatePressTimer = undefined
+			this.#duplicateLongPressed = true
+			this.dispatchEvent(new CustomEvent('card-duplicate-long-press', { bubbles: true }))
+		}, DUPLICATE_LONG_PRESS_DURATION_MS)
+	}
+
+	duplicatePointerUp = () => {
+		this.#cancelDuplicatePress()
+	}
+
+	duplicateClick = () => {
+		if (this.#duplicateLongPressed) {
+			this.#duplicateLongPressed = false
+			return
+		}
+
+		this.duplicateInPlace(1)
+	}
+
+	#cancelDuplicatePress () {
+		if (this.#duplicatePressTimer !== undefined) {
+			clearTimeout(this.#duplicatePressTimer)
+			this.#duplicatePressTimer = undefined
 		}
 	}
 

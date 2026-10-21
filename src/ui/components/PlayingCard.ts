@@ -96,11 +96,6 @@ const lightCss = /*css*/`
 		}
 	}
 
-	.pc-count-input {
-		inline-size: 3.5rem;
-		text-align: end;
-	}
-
 	.pc-edition-input {
 		inline-size: auto;
 		min-inline-size: 4.5rem;
@@ -463,30 +458,16 @@ export class PlayingCard extends MovableCard {
 							</option>
 						</select>
 					</label>
-				</div>
-
-				<div class="action-list">
-					<label class="control-box --flat --grow">
-						<span class="label truncate">${t('count')}</span>
-						<input
-							class="pc-count-input text-input"
-							name="card-count-${this.uniqueId}"
-							type="number"
-							value="1"
-							.value="${this.count}"
-							min="1"
-							@change="${(event: Event) => {
-								const input = event.target as HTMLInputElement
-								this.count = Number(input.value)
-							}}"
-						>
-						<span class="label truncate" aria-hidden="true">×</span>
-					</label>
 
 					<button
-						class="button --icon push-inline-start"
+						class="button --icon duplicate-button"
 						type="button"
-						@click="${() => this.duplicateInPlace()}"
+						title="${t('duplicateLongPressHint')}"
+						@pointerdown="${this.duplicatePointerDown}"
+						@pointerup="${this.duplicatePointerUp}"
+						@pointercancel="${this.duplicatePointerUp}"
+						@pointerleave="${this.duplicatePointerUp}"
+						@click="${this.duplicateClick}"
 					>
 						<span class="visually-hidden">${t('duplicateCard')}</span>
 
@@ -602,15 +583,22 @@ export class PlayingCard extends MovableCard {
 		this.classList[isThePillarBlind ? 'add' : 'remove']('--is-blind-the-pillar')
 	}
 
-	duplicateInPlace () {
-		const copy = this.clone()
-		this.insertAdjacentElement('afterend', copy)
-
+	duplicateInPlace (count = 1) {
+		const copies = document.createDocumentFragment()
 		const blindNameInput = document.querySelector<HTMLElement>('[name="blindName"]')
 		const blindIsActiveCheckbox = document.querySelector<HTMLInputElement>('[name="blindIsActive"]')
-		if (blindNameInput && blindIsActiveCheckbox && 'value' in blindNameInput) {
-			copy.toggleBlindEffects(String(blindNameInput.value) as BlindName, blindIsActiveCheckbox.checked)
+
+		for (let index = 0; index < count; index++) {
+			const copy = this.clone()
+
+			if (blindNameInput && blindIsActiveCheckbox && 'value' in blindNameInput) {
+				copy.toggleBlindEffects(String(blindNameInput.value) as BlindName, blindIsActiveCheckbox.checked)
+			}
+
+			copies.append(copy)
 		}
+
+		this.after(copies)
 	}
 
 	clone () {
