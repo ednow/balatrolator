@@ -83,8 +83,7 @@ html.mobile-ui body.mobile-panel-open {
 	border: 2px solid var(--fab-border);
 	border-radius: 50%;
 	color: var(--fab-text);
-	background-color: var(--fab-bg);
-	box-shadow: 0 0.2rem 0.65rem hsl(0 0% 0% / 0.18);
+	background-color: transparent;
 	font-size: 0.9rem;
 	line-height: 1.2;
 	cursor: grab;
@@ -119,6 +118,12 @@ html.mobile-ui body.mobile-panel-open {
 .score-fab__value {
 	position: absolute;
 	inset-inline: 0;
+	inline-size: max-content;
+	max-inline-size: 100%;
+	margin-inline: auto;
+	padding: 0.15rem 0.4rem;
+	border-radius: 0.25rem;
+	background-color: var(--fab-bg);
 	display: block;
 	overflow: hidden;
 	white-space: nowrap;
@@ -128,15 +133,17 @@ html.mobile-ui body.mobile-panel-open {
 }
 
 .score-fab__hand {
-	bottom: calc(50% + 0.65rem);
+	bottom: calc(50% + 0.9rem);
 	font-size: 0.9rem;
 	text-overflow: ellipsis;
+	max-inline-size: 6.3rem;
 }
 
 .score-fab__luck {
-	top: calc(50% + 0.65rem);
+	top: calc(50% + 0.9rem);
 	font-size: 0.8rem;
 	text-overflow: ellipsis;
+	max-inline-size: 6.3rem;
 }
 
 .score-fab__value {
