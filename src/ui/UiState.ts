@@ -40,6 +40,160 @@ form.addEventListener('submit', (event) => {
 })
 form.addEventListener('change', () => calculate())
 
+const STEPPABLE_NUMBER_INPUT_ROOTS = '.form__hands, .form__round'
+
+function getSteppableNumberInput (target: EventTarget | null): HTMLInputElement | null {
+	if (!(target instanceof HTMLInputElement) || target.type !== 'number') {
+		return null
+	}
+
+	return target.closest(STEPPABLE_NUMBER_INPUT_ROOTS) === null ? null : target
+}
+
+let pendingNumberInputCommit: HTMLInputElement | null = null
+let numberInputCommitTimer: ReturnType<typeof setTimeout> | undefined
+
+function commitNumberInput (input: HTMLInputElement) {
+	input.dispatchEvent(new Event('change', { bubbles: true }))
+}
+
+function commitPendingNumberInput () {
+	if (numberInputCommitTimer !== undefined) {
+		clearTimeout(numberInputCommitTimer)
+		numberInputCommitTimer = undefined
+	}
+
+	const input = pendingNumberInputCommit
+	pendingNumberInputCommit = null
+	if (input !== null) {
+		commitNumberInput(input)
+	}
+}
+
+function scheduleNumberInputCommit (input: HTMLInputElement) {
+	if (pendingNumberInputCommit !== null && pendingNumberInputCommit !== input) {
+		commitNumberInput(pendingNumberInputCommit)
+	}
+
+	pendingNumberInputCommit = input
+
+	if (numberInputCommitTimer !== undefined) {
+		clearTimeout(numberInputCommitTimer)
+	}
+
+	numberInputCommitTimer = setTimeout(commitPendingNumberInput, 150)
+}
+
+function setNumberInputValue (input: HTMLInputElement, value: number) {
+	const min = input.min === '' ? -Infinity : Number(input.min)
+	const max = input.max === '' ? Infinity : Number(input.max)
+	const clamped = Math.min(max, Math.max(min, value))
+	if (clamped === Number(input.value)) {
+		return
+	}
+
+	input.value = String(clamped)
+	input.dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+form.addEventListener('wheel', (event) => {
+	const input = getSteppableNumberInput(event.target)
+	if (input === null || event.deltaY === 0) {
+		return
+	}
+
+	event.preventDefault()
+
+	if (event.deltaY < 0) {
+		input.stepUp()
+	} else {
+		input.stepDown()
+	}
+
+	input.dispatchEvent(new Event('input', { bubbles: true }))
+	scheduleNumberInputCommit(input)
+}, { passive: false })
+
+const TOUCH_STEP_THRESHOLD_PX = 8
+const TOUCH_STEP_SIZE_PX = 16
+
+interface TouchStep {
+	input: HTMLInputElement
+	startY: number
+	startValue: number
+	step: number
+	appliedSteps: number
+	scrubbing: boolean
+}
+
+let touchStep: TouchStep | null = null
+
+form.addEventListener('touchstart', (event) => {
+	touchStep = null
+
+	if (event.touches.length !== 1) {
+		return
+	}
+
+	const input = getSteppableNumberInput(event.target)
+	if (input === null) {
+		return
+	}
+
+	const startValue = Number(input.value)
+	touchStep = {
+		input,
+		startY: event.touches[0]!.clientY,
+		startValue: Number.isFinite(startValue) ? startValue : 0,
+		step: Number(input.step) || 1,
+		appliedSteps: 0,
+		scrubbing: false,
+	}
+}, { passive: true })
+
+form.addEventListener('touchmove', (event) => {
+	if (touchStep === null || event.touches.length !== 1) {
+		return
+	}
+
+	const deltaY = event.touches[0]!.clientY - touchStep.startY
+	if (!touchStep.scrubbing) {
+		if (Math.abs(deltaY) < TOUCH_STEP_THRESHOLD_PX) {
+			return
+		}
+
+		touchStep.scrubbing = true
+	}
+
+	event.preventDefault()
+
+	const steps = Math.trunc(-deltaY / TOUCH_STEP_SIZE_PX)
+	if (steps === touchStep.appliedSteps) {
+		return
+	}
+
+	touchStep.appliedSteps = steps
+	setNumberInputValue(touchStep.input, touchStep.startValue + steps * touchStep.step)
+}, { passive: false })
+
+form.addEventListener('touchend', (event) => {
+	if (touchStep === null) {
+		return
+	}
+
+	if (touchStep.scrubbing) {
+		event.preventDefault()
+		scheduleNumberInputCommit(touchStep.input)
+		commitPendingNumberInput()
+	}
+
+	touchStep = null
+}, { passive: false })
+
+form.addEventListener('touchcancel', () => {
+	touchStep = null
+})
+
 const liveRegion = document.querySelector<HTMLElement>('[aria-live="polite"]')!
 function ariaNotify (message: string) {
 	liveRegion.innerText = message
