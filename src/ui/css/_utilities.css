@@ -78,6 +78,14 @@ html.mobile-ui .form__cards .list > playing-card {
 	}
 }
 
+@media (orientation: landscape) and (min-width: 48rem) {
+	html.mobile-ui .form__jokers .list > joker-card,
+	html.mobile-ui .form__cards .list > playing-card {
+		--cards-per-row: 6;
+		--cards-row-gaps: 2.5rem;
+	}
+}
+
 .actions {
 	display: flex;
 	align-items: center;

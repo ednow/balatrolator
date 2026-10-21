@@ -40,7 +40,7 @@ form.addEventListener('submit', (event) => {
 })
 form.addEventListener('change', () => calculate())
 
-const STEPPABLE_NUMBER_INPUT_ROOTS = '.form__hands, .form__round'
+const STEPPABLE_NUMBER_INPUT_ROOTS = '.form__hands, .form__round, .form__jokers'
 
 function getSteppableNumberInput (target: EventTarget | null): HTMLInputElement | null {
 	if (!(target instanceof HTMLInputElement) || target.type !== 'number') {
@@ -96,6 +96,17 @@ function setNumberInputValue (input: HTMLInputElement, value: number) {
 	input.dispatchEvent(new Event('input', { bubbles: true }))
 }
 
+function getNumberInputStep (input: HTMLInputElement) {
+	const step = Number(input.step)
+	return Number.isFinite(step) && step > 0 ? step : 1
+}
+
+function roundToStepPrecision (value: number, step: number) {
+	const stepText = String(step)
+	const decimals = stepText.includes('.') ? stepText.length - stepText.indexOf('.') - 1 : 0
+	return Number(value.toFixed(decimals))
+}
+
 form.addEventListener('wheel', (event) => {
 	const input = getSteppableNumberInput(event.target)
 	if (input === null || event.deltaY === 0) {
@@ -145,7 +156,7 @@ form.addEventListener('touchstart', (event) => {
 		input,
 		startY: event.touches[0]!.clientY,
 		startValue: Number.isFinite(startValue) ? startValue : 0,
-		step: Number(input.step) || 1,
+		step: getNumberInputStep(input),
 		appliedSteps: 0,
 		scrubbing: false,
 	}
@@ -173,7 +184,7 @@ form.addEventListener('touchmove', (event) => {
 	}
 
 	touchStep.appliedSteps = steps
-	setNumberInputValue(touchStep.input, touchStep.startValue + steps * touchStep.step)
+	setNumberInputValue(touchStep.input, roundToStepPrecision(touchStep.startValue + steps * touchStep.step, touchStep.step))
 }, { passive: false })
 
 form.addEventListener('touchend', (event) => {

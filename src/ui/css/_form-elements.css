@@ -134,7 +134,8 @@
 }
 
 html.mobile-ui .form__hands input[type="number"],
-html.mobile-ui .form__round input[type="number"] {
+html.mobile-ui .form__round input[type="number"],
+html.mobile-ui .form__jokers input[type="number"] {
 	touch-action: pan-x;
 }
 
