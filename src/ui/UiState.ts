@@ -90,7 +90,7 @@ const scoreLogModalEl = document.querySelector<HTMLDialogElement>('#sc-log-modal
 const scoreLogModalBodyEl = scoreLogModalEl.querySelector<HTMLElement>('[data-sc-log-modal]')!
 const scoreLogExpandButton = form.querySelector<HTMLButtonElement>('[data-sc-log-expand]')!
 const scoreFabEl = document.querySelector<HTMLButtonElement>('[data-sc-fab]')!
-const scoreFabLuckEl = document.querySelector<HTMLElement>('[data-sc-fab-luck]')!
+const scoreFabHandEl = document.querySelector<HTMLElement>('[data-sc-fab-hand]')!
 const scoreFabValueEl = document.querySelector<HTMLElement>('[data-sc-fab-score]')!
 
 const SCORE_FAB_LONG_PRESS_MS = 500
@@ -184,10 +184,10 @@ function cycleSelectedLuck () {
 	renderScoreUi(lastScoreHand, lastScoreResults)
 }
 
-function updateScoreFab (result: Result) {
+function updateScoreFab (result: Result, hand: HandName) {
 	scoreFabEl.classList.remove('score-fab--luck-none', 'score-fab--luck-average', 'score-fab--luck-all')
 	scoreFabEl.classList.add(`score-fab--luck-${result.luck}`)
-	scoreFabLuckEl.textContent = luckLabel(result.luck)
+	scoreFabHandEl.textContent = term(hand)
 	scoreFabValueEl.textContent = result.formattedScore
 	scoreFabValueEl.title = result.formattedScore
 	fitScoreFabValue()
@@ -785,7 +785,7 @@ function renderScoreUi (hand: HandName, results: Result[]) {
 	if (isMobileUi()) {
 		const active = results.find((result) => result.luck === selectedLuck) ?? results[0]!
 		renderScoreLogUi([active.log])
-		updateScoreFab(active)
+		updateScoreFab(active, hand)
 	} else {
 		renderScoreLogUi(resultArray.map((result) => result.log))
 	}

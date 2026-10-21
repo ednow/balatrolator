@@ -114,9 +114,12 @@ html.mobile-ui body.mobile-panel-open {
 	--fab-text: hsl(155 38% 18%);
 }
 
-.score-fab__luck {
+.score-fab__hand {
 	display: block;
-	font-size: 0.95rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 0.9rem;
 	font-weight: bold;
 }
 
