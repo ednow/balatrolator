@@ -129,7 +129,7 @@ test.describe('Jokers', () => {
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
 
 		await page.locator('[data-j-container]').dblclick()
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-25*****0*0*1*-')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-25*******1*-')
 
 		const name = page.locator('[name^="joker-name-"]')
 		const nameButton = name.getByRole('button', { name: /^Show joker options$/ })
@@ -142,10 +142,10 @@ test.describe('Jokers', () => {
 		await expect(nameOptions.getByRole('option')).toHaveCount(5)
 		await page.keyboard.press('ArrowDown')
 		await page.keyboard.press('Enter')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*****0*0*1*-')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*******1*-')
 
 		await page.getByRole('combobox', { name: /^Edition$/ }).selectOption('Foil')
-		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1****0*0*1*-')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1******1*-')
 	})
 
 	test('recovers after a search with no matches', async ({ page }) => {
@@ -229,15 +229,19 @@ test.describe('Jokers', () => {
 	test('can be duplicated', async ({ page }) => {
 		await page.goto('/?state=----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*1****0*0*1*2-')
 
-		const jokerCard = page.locator('joker-card')
-		await jokerCard.getByRole('button', { name: /^Duplicate joker$/ }).click()
-		await jokerCard.getByRole('button', { name: /^Duplicate joker$/ }).click()
+		const firstCard = page.locator('joker-card').first()
+		const duplicateButton = firstCard.getByRole('button', { name: /^Duplicate joker$/ })
+		await duplicateButton.click()
+		await duplicateButton.click()
 		const jokerCards = page.locator('joker-card')
 		await expect(jokerCards).toHaveCount(3)
 		for (const jokerCard of await jokerCards.all()) {
-			await expect(jokerCard.getByRole('spinbutton', { name: /^Count$/ })).toHaveValue('2')
 			await expect(jokerCard.getByRole('combobox', { name: /^Edition$/ })).toHaveValue('Foil')
 		}
+		await expect(page).toHaveURL((url) => {
+			const jokerCodes = url.searchParams.get('state')?.split('-')[9]?.split('_') ?? []
+			return jokerCodes.length === 3 && jokerCodes.every((code) => code === '14*1******1*2')
+		})
 	})
 
 	test('can be re-arranged with “Move left”/“Move right” buttons', async ({ page }) => {
