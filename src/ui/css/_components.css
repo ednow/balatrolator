@@ -114,24 +114,36 @@ html.mobile-ui body.mobile-panel-open {
 	--fab-text: hsl(155 38% 18%);
 }
 
-.score-fab__hand {
+.score-fab__hand,
+.score-fab__luck,
+.score-fab__value {
+	position: absolute;
+	inset-inline: 0;
 	display: block;
 	overflow: hidden;
-	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: 0.9rem;
 	font-weight: bold;
+	text-align: center;
+	line-height: 1.1;
+}
+
+.score-fab__hand {
+	bottom: calc(50% + 0.65rem);
+	font-size: 0.9rem;
+	text-overflow: ellipsis;
+}
+
+.score-fab__luck {
+	top: calc(50% + 0.65rem);
+	font-size: 0.8rem;
+	text-overflow: ellipsis;
 }
 
 .score-fab__value {
-	display: block;
-	margin-block-start: 0.1rem;
-	overflow: hidden;
+	top: 50%;
+	transform: translateY(-50%);
 	text-overflow: clip;
-	white-space: nowrap;
 	font-size: 1.05rem;
-	font-weight: bold;
-	line-height: 1.1;
 }
 
 .hide-on-wide {

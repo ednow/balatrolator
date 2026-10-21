@@ -91,6 +91,7 @@ const scoreLogModalBodyEl = scoreLogModalEl.querySelector<HTMLElement>('[data-sc
 const scoreLogExpandButton = form.querySelector<HTMLButtonElement>('[data-sc-log-expand]')!
 const scoreFabEl = document.querySelector<HTMLButtonElement>('[data-sc-fab]')!
 const scoreFabHandEl = document.querySelector<HTMLElement>('[data-sc-fab-hand]')!
+const scoreFabLuckEl = document.querySelector<HTMLElement>('[data-sc-fab-luck]')!
 const scoreFabValueEl = document.querySelector<HTMLElement>('[data-sc-fab-score]')!
 
 const SCORE_FAB_LONG_PRESS_MS = 500
@@ -188,6 +189,7 @@ function updateScoreFab (result: Result, hand: HandName) {
 	scoreFabEl.classList.remove('score-fab--luck-none', 'score-fab--luck-average', 'score-fab--luck-all')
 	scoreFabEl.classList.add(`score-fab--luck-${result.luck}`)
 	scoreFabHandEl.textContent = term(hand)
+	scoreFabLuckEl.textContent = luckLabel(result.luck)
 	scoreFabValueEl.textContent = result.formattedScore
 	scoreFabValueEl.title = result.formattedScore
 	fitScoreFabValue()
