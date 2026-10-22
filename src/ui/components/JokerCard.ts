@@ -417,6 +417,8 @@ export class JokerCard extends MovableCard {
 
 		return html`
 			<div class="stack">
+				<button class="card-drag-handle" data-card-drag-handle type="button" aria-label="${t('dragToReorder')}"></button>
+
 				<div class="action-list jc-action-list">
 					<button
 						class="button --icon"

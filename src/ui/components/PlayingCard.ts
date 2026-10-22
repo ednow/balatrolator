@@ -435,6 +435,8 @@ export class PlayingCard extends MovableCard {
 	template () {
 		return html`
 			<div class="stack">
+				<button class="card-drag-handle" data-card-drag-handle type="button" aria-label="${t('dragToReorder')}"></button>
+
 				<div class="action-list pc-action-list">
 					<button
 						class="button --icon"

@@ -406,6 +406,42 @@ html.mobile-ui .card-dropzone {
 	display: none;
 }
 
+.card-drag-handle {
+	display: none;
+}
+
+html.mobile-ui .card-drag-handle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: 100%;
+	block-size: 0.75rem;
+	padding: 0;
+	border: 0;
+	background-color: transparent;
+	touch-action: none;
+	cursor: grab;
+	user-select: none;
+}
+
+html.mobile-ui .card-drag-handle::before {
+	content: '';
+	inline-size: 1.5rem;
+	block-size: 0.15rem;
+	border-radius: 999px;
+	background-color: hsl(0 0% 0% / 22%);
+}
+
+@media (prefers-contrast: more) {
+	html.mobile-ui .card-drag-handle::before {
+		background-color: hsl(0 0% 0% / 55%);
+	}
+}
+
+html.mobile-ui .card .card-drag-handle + * {
+	margin-block-start: 0.25rem;
+}
+
 html.mobile-ui .card.--is-remove-armed .card-remove-button {
 	position: absolute;
 	z-index: 5;

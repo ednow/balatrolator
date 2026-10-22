@@ -28,6 +28,7 @@ export abstract class MovableCard extends BaseElement {
 	#suppressNextClick = false
 	#dragPointerId: number | undefined
 	#dragStart: PointerOrigin | undefined
+	#dragFromHandle = false
 	#pointerDragging = false
 	#dragClickTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -38,10 +39,8 @@ export abstract class MovableCard extends BaseElement {
 		this.addEventListener('dragend', this.#handleDragEnd)
 		this.addEventListener('drop', this.#handleDrop)
 		this.addEventListener('pointerdown', this.#handlePointerDown)
-		this.addEventListener('pointermove', this.#handlePointerMove, { passive: false })
 		this.addEventListener('pointerup', this.#handlePointerUp)
 		this.addEventListener('pointercancel', this.#handlePointerUp)
-		this.addEventListener('pointerleave', this.#handlePointerLeave)
 		this.addEventListener('touchend', this.#handleTouchEnd, { capture: true, passive: false })
 		this.addEventListener('contextmenu', this.#handleContextMenu)
 	}
@@ -187,6 +186,19 @@ export abstract class MovableCard extends BaseElement {
 			return
 		}
 
+		this.#dragFromHandle = false
+
+		if (isDragHandle(event)) {
+			event.preventDefault()
+			this.#setRemoveArmed(false)
+			this.#cancelPress()
+			this.#pressPointerId = event.pointerId
+			this.#pressOrigin = { x: event.clientX, y: event.clientY }
+			this.#dragFromHandle = true
+			this.#suppressNextClick = true
+			return
+		}
+
 		if (this.#removeArmed) {
 			// Tapping the floating button itself must be left to the button’s click handler.
 			if (isRemoveButton(event)) {
@@ -217,7 +229,7 @@ export abstract class MovableCard extends BaseElement {
 		}, REMOVE_LONG_PRESS_DURATION_MS)
 	}
 
-	#handlePointerMove = (event: PointerEvent) => {
+	#handlePointerMoveState = (event: PointerEvent) => {
 		if (this.#pointerDragging) {
 			return
 		}
@@ -229,19 +241,33 @@ export abstract class MovableCard extends BaseElement {
 
 		const deltaX = event.clientX - origin.x
 		const deltaY = event.clientY - origin.y
+
+		if (this.#dragFromHandle) {
+			if (Math.hypot(deltaX, deltaY) >= TOUCH_DRAG_START_DISTANCE_PX) {
+				event.preventDefault()
+				this.#startPointerDrag(origin, event)
+			}
+			return
+		}
+
 		if (Math.hypot(deltaX, deltaY) > LONG_PRESS_TOLERANCE_PX) {
 			this.#cancelPress()
 		}
 
-		if (
-			this.#removeArmed ||
-			Math.abs(deltaX) < TOUCH_DRAG_START_DISTANCE_PX ||
-			Math.abs(deltaX) <= Math.abs(deltaY)
-		) {
+		const isMouse = event.pointerType === 'mouse'
+		const dragStarted = isMouse
+			? Math.hypot(deltaX, deltaY) >= TOUCH_DRAG_START_DISTANCE_PX
+			: Math.abs(deltaX) >= TOUCH_DRAG_START_DISTANCE_PX && Math.abs(deltaX) > Math.abs(deltaY)
+
+		if (this.#removeArmed || !dragStarted) {
 			return
 		}
 
 		event.preventDefault()
+		this.#startPointerDrag(origin, event)
+	}
+
+	#startPointerDrag (origin: PointerOrigin, event: PointerEvent) {
 		this.#pointerDragging = true
 		this.#dragPointerId = event.pointerId
 		this.#dragStart = { x: origin.x, y: origin.y }
@@ -251,7 +277,12 @@ export abstract class MovableCard extends BaseElement {
 	}
 
 	#handleDragPointerMove = (event: PointerEvent) => {
-		if (!this.#pointerDragging || event.pointerId !== this.#dragPointerId) {
+		if (!this.#pointerDragging) {
+			this.#handlePointerMoveState(event)
+			return
+		}
+
+		if (event.pointerId !== this.#dragPointerId) {
 			return
 		}
 
@@ -286,7 +317,7 @@ export abstract class MovableCard extends BaseElement {
 
 	#commitPointerDrag (clientX: number, clientY: number) {
 		if (this.#container) {
-			drop(this.#container, this, clientX, clientY)
+			drop(this.#container, this, clientX, clientY, true)
 		}
 		this.#finishPointerDrag()
 		this.#suppressDragClick()
@@ -334,7 +365,11 @@ export abstract class MovableCard extends BaseElement {
 				this.#finishPointerDrag()
 				this.#suppressDragClick()
 			}
+		} else if (this.#dragFromHandle) {
+			this.#suppressDragClick()
 		}
+
+		this.#dragFromHandle = false
 
 		if (event.pointerId !== this.#pressPointerId) {
 			return
@@ -345,14 +380,6 @@ export abstract class MovableCard extends BaseElement {
 		this.#pressPointerId = undefined
 	}
 
-	#handlePointerLeave = () => {
-		if (this.#pointerDragging) {
-			return
-		}
-
-		this.#cancelPress()
-	}
-
 	#finishPointerDrag () {
 		if (!this.#pointerDragging) {
 			return
@@ -360,6 +387,7 @@ export abstract class MovableCard extends BaseElement {
 
 		this.#pointerDragging = false
 		this.#dragStart = undefined
+		this.#dragFromHandle = false
 		this.classList.remove('--is-dragging')
 		this.style.removeProperty('--drag-x')
 		this.style.removeProperty('--drag-y')
@@ -467,6 +495,11 @@ function isRemoveButton (event: Event): boolean {
 	return target instanceof Element && target.closest('.card-remove-button') !== null
 }
 
+function isDragHandle (event: Event): boolean {
+	const target = event.target
+	return target instanceof Element && target.closest('[data-card-drag-handle]') !== null
+}
+
 function isInteractive (event: Event): boolean {
 	for (const target of event.composedPath()) {
 		if (target === event.currentTarget) {
@@ -513,38 +546,51 @@ interface CardRow {
 	cards: Element[]
 }
 
-function drop (container: Element, draggedEl: Element, clientX: number, clientY: number) {
-	const siblings = Array.from(container.children).filter((element) => element !== draggedEl)
-	if (siblings.length === 0) {
-		return
+function drop (container: Element, draggedEl: Element, clientX: number, clientY: number, measureWithoutDragged = false) {
+	const shouldHide = measureWithoutDragged && draggedEl instanceof HTMLElement
+	const previousDisplay = shouldHide ? (draggedEl as HTMLElement).style.display : ''
+	if (shouldHide) {
+		// Measure the layout as if the dragged card had already been removed, otherwise cards in later rows appear one slot earlier than they will after the move.
+		;(draggedEl as HTMLElement).style.display = 'none'
 	}
 
-	const rows = groupIntoRows(siblings)
-	const targetRow = findTargetRow(rows, clientY)
-	if (targetRow === undefined) {
-		return
-	}
-
-	const targetCard = targetRow.cards.find((element) => {
-		const { left, width } = element.getBoundingClientRect()
-		return clientX < left + width / 2
-	})
-
-	if (targetCard !== undefined) {
-		if (draggedEl.nextElementSibling === targetCard) {
+	try {
+		const siblings = Array.from(container.children).filter((element) => element !== draggedEl)
+		if (siblings.length === 0) {
 			return
 		}
 
-		targetCard.insertAdjacentElement('beforebegin', draggedEl)
-		return
-	}
+		const rows = groupIntoRows(siblings)
+		const targetRow = findTargetRow(rows, clientY)
+		if (targetRow === undefined) {
+			return
+		}
 
-	const lastCard = targetRow.cards.at(-1)!
-	if (draggedEl.previousElementSibling === lastCard) {
-		return
-	}
+		const targetCard = targetRow.cards.find((element) => {
+			const { left, width } = element.getBoundingClientRect()
+			return clientX < left + width / 2
+		})
 
-	lastCard.insertAdjacentElement('afterend', draggedEl)
+		if (targetCard !== undefined) {
+			if (draggedEl.nextElementSibling === targetCard) {
+				return
+			}
+
+			targetCard.insertAdjacentElement('beforebegin', draggedEl)
+			return
+		}
+
+		const lastCard = targetRow.cards.at(-1)!
+		if (draggedEl.previousElementSibling === lastCard) {
+			return
+		}
+
+		lastCard.insertAdjacentElement('afterend', draggedEl)
+	} finally {
+		if (shouldHide) {
+			;(draggedEl as HTMLElement).style.display = previousDisplay
+		}
+	}
 }
 
 function groupIntoRows (elements: Element[]): CardRow[] {
