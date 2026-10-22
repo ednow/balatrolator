@@ -37,6 +37,13 @@ for (let fromRow = 0; fromRow < 4; fromRow++) {
 const EMPTY_STATE_URL = '/?state=----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--'
 
 test.describe('Mobile playing cards', () => {
+	test('disable pull-to-refresh while dragging', async ({ page }) => {
+		await page.goto('/')
+
+		await expect(page.locator('html')).toHaveCSS('overscroll-behavior-y', 'none')
+		await expect(page.locator('body')).toHaveCSS('overscroll-behavior-y', 'none')
+	})
+
 	test('show the modifiers in one row and remove a card via long press', async ({ page }) => {
 		await page.goto('/')
 
