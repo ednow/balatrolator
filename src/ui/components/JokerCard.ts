@@ -490,6 +490,7 @@ export class JokerCard extends MovableCard {
 							value="8 Ball"
 							.value="${this.jokerName}"
 							options-json="jokersJson"
+							match-pinyin
 							button-label="${t('showJokerOptions')}"
 							input-label="${t('filterJokers')}"
 							listbox-label="${t('jokers')}"

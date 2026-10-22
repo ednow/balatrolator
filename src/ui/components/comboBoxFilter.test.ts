@@ -23,22 +23,27 @@ describe('matchesOption', () => {
 	})
 
 	it('matches full pinyin prefixes', () => {
-		expect(matchesOption('Campfire', 'gou')).toBe(true)
-		expect(matchesOption('Campfire', 'gouhuo')).toBe(true)
+		expect(matchesOption('Campfire', 'gou', true)).toBe(true)
+		expect(matchesOption('Campfire', 'gouhuo', true)).toBe(true)
 	})
 
 	it('matches pinyin initials', () => {
-		expect(matchesOption('Campfire', 'g')).toBe(true)
-		expect(matchesOption('Campfire', 'gh')).toBe(true)
+		expect(matchesOption('Campfire', 'g', true)).toBe(true)
+		expect(matchesOption('Campfire', 'gh', true)).toBe(true)
 	})
 
 	it('matches pinyin with polyphonic characters', () => {
-		expect(matchesOption('Seeing Double', 'chong')).toBe(true)
-		expect(matchesOption('Seeing Double', 'cy')).toBe(true)
+		expect(matchesOption('Seeing Double', 'chong', true)).toBe(true)
+		expect(matchesOption('Seeing Double', 'cy', true)).toBe(true)
+	})
+
+	it('only matches pinyin when enabled', () => {
+		expect(matchesOption('Cerulean Bell', 'w')).toBe(false)
+		expect(matchesOption('Cerulean Bell', 'w', true)).toBe(true)
 	})
 
 	it('does not match unrelated queries', () => {
 		expect(matchesOption('Campfire', '篝火提示')).toBe(false)
-		expect(matchesOption('Campfire', 'huo')).toBe(false)
+		expect(matchesOption('Campfire', 'huo', true)).toBe(false)
 	})
 })

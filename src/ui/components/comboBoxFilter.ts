@@ -1,7 +1,7 @@
 import { zhPinyin } from '../zh-pinyin.ts'
 import { zhTerms } from '../zh-terms.ts'
 
-export function matchesOption (option: string, query: string) {
+export function matchesOption (option: string, query: string, matchPinyin = false) {
 	if (query === '') {
 		return true
 	}
@@ -18,6 +18,10 @@ export function matchesOption (option: string, query: string) {
 
 	if (zh.toLowerCase().includes(lowerQuery)) {
 		return true
+	}
+
+	if (!matchPinyin) {
+		return false
 	}
 
 	const pinyin = zhPinyin[zh]

@@ -184,7 +184,7 @@ export class ComboBox extends FormAssociatedElement {
 	}
 
 	#refilterOptions = () => {
-		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, this.#query))
+		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, this.#query, this.#matchPinyin))
 	}
 
 	formDisabledCallback (disabled: boolean) {
@@ -283,9 +283,13 @@ export class ComboBox extends FormAssociatedElement {
 
 	set query (query) {
 		this.#query = query
-		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, query))
+		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, query, this.#matchPinyin))
 
 		this.queueRender()
+	}
+
+	get #matchPinyin () {
+		return this.hasAttribute('match-pinyin')
 	}
 
 	get #options () {
@@ -294,7 +298,7 @@ export class ComboBox extends FormAssociatedElement {
 
 	set #options (options) {
 		this.#_options = options
-		this.#_filteredOptions = options.filter((option) => matchesOption(option, this.query))
+		this.#_filteredOptions = options.filter((option) => matchesOption(option, this.query, this.#matchPinyin))
 
 		this.queueRender()
 	}
@@ -497,12 +501,10 @@ export class ComboBox extends FormAssociatedElement {
 
 		if (isOpen) {
 			this.query = ''
-			queueMicrotask(() => {
-				const input = this.querySelector<HTMLInputElement>('.cb-input')
-				if (input) {
-					input.value = ''
-				}
-			})
+			const input = this.querySelector<HTMLInputElement>('.cb-input')
+			if (input) {
+				input.value = ''
+			}
 
 			const selectedOptionIndex = this.#filteredOptions.indexOf(this.value)
 			this.#highlightedOptionIndex = Math.max(0, selectedOptionIndex)
