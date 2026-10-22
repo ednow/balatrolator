@@ -27,6 +27,7 @@ export abstract class MovableCard extends BaseElement {
 	#removeArmed = false
 	#suppressNextClick = false
 	#dragPointerId: number | undefined
+	#dragStart: PointerOrigin | undefined
 	#pointerDragging = false
 	#dragClickTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -233,7 +234,6 @@ export abstract class MovableCard extends BaseElement {
 		}
 
 		if (
-			event.pointerType === 'mouse' ||
 			this.#removeArmed ||
 			Math.abs(deltaX) < TOUCH_DRAG_START_DISTANCE_PX ||
 			Math.abs(deltaX) <= Math.abs(deltaY)
@@ -244,12 +244,10 @@ export abstract class MovableCard extends BaseElement {
 		event.preventDefault()
 		this.#pointerDragging = true
 		this.#dragPointerId = event.pointerId
+		this.#dragStart = { x: origin.x, y: origin.y }
 		this.classList.add('--is-dragging')
 		this.#suppressNextClick = true
-
-		if (this.#container) {
-			drop(this.#container, this, event.clientX)
-		}
+		this.#updateDragTransform(event)
 	}
 
 	#handleDragPointerMove = (event: PointerEvent) => {
@@ -258,9 +256,16 @@ export abstract class MovableCard extends BaseElement {
 		}
 
 		event.preventDefault()
-		if (this.#container) {
-			drop(this.#container, this, event.clientX)
+		this.#updateDragTransform(event)
+	}
+
+	#updateDragTransform (event: PointerEvent) {
+		if (this.#dragStart === undefined) {
+			return
 		}
+
+		this.style.setProperty('--drag-x', `${event.clientX - this.#dragStart.x}px`)
+		this.style.setProperty('--drag-y', `${event.clientY - this.#dragStart.y}px`)
 	}
 
 	#handleDragPointerEnd = (event: PointerEvent) => {
@@ -270,6 +275,19 @@ export abstract class MovableCard extends BaseElement {
 
 		this.#pressPointerId = undefined
 		this.#cancelPress()
+		if (event.type === 'pointerup') {
+			this.#commitPointerDrag(event.clientX, event.clientY)
+			return
+		}
+
+		this.#finishPointerDrag()
+		this.#suppressDragClick()
+	}
+
+	#commitPointerDrag (clientX: number, clientY: number) {
+		if (this.#container) {
+			drop(this.#container, this, clientX, clientY)
+		}
 		this.#finishPointerDrag()
 		this.#suppressDragClick()
 	}
@@ -309,6 +327,15 @@ export abstract class MovableCard extends BaseElement {
 	}
 
 	#handlePointerUp = (event: PointerEvent) => {
+		if (this.#pointerDragging) {
+			if (event.type === 'pointerup') {
+				this.#commitPointerDrag(event.clientX, event.clientY)
+			} else {
+				this.#finishPointerDrag()
+				this.#suppressDragClick()
+			}
+		}
+
 		if (event.pointerId !== this.#pressPointerId) {
 			return
 		}
@@ -332,7 +359,10 @@ export abstract class MovableCard extends BaseElement {
 		}
 
 		this.#pointerDragging = false
+		this.#dragStart = undefined
 		this.classList.remove('--is-dragging')
+		this.style.removeProperty('--drag-x')
+		this.style.removeProperty('--drag-y')
 		this.#dragPointerId = undefined
 
 		if (this.#container) {
@@ -372,7 +402,8 @@ export abstract class MovableCard extends BaseElement {
 	}
 
 	#handleDragStart = (event: DragEvent) => {
-		if (this.#pointerDragging) {
+		// Mobile UI uses pointer-based dragging for both touch and mouse input.
+		if (isMobileUi() || this.#pointerDragging) {
 			event.preventDefault()
 			return
 		}
@@ -400,7 +431,7 @@ export abstract class MovableCard extends BaseElement {
 
 		const draggedEl = getDragEventData(event, this.#container)
 		if (draggedEl) {
-			drop(this.#container, draggedEl, event.clientX)
+			drop(this.#container, draggedEl, event.clientX, event.clientY)
 			for (const node of this.#container.children) {
 				if (node instanceof BaseElement) {
 					node.queueRender()
@@ -476,36 +507,89 @@ function getDragEventData (event: DragEvent, container: Element): Element | null
 	return null
 }
 
-function drop (container: Element, draggedEl: Element, dragClientX: number) {
-	// Determining the insertion coordinate for the element …
-	const containerRect = container.getBoundingClientRect()
-	// The drop target X coordinate relative to the container.
-	const dropTargetX = dragClientX - containerRect.left
+interface CardRow {
+	top: number
+	bottom: number
+	cards: Element[]
+}
 
-	for (const el of container.children) {
-		if (el === draggedEl) {
-			continue
-		}
-
-		const { left, width } = el.getBoundingClientRect()
-		// The element's X coordinate relative to the container.
-		const elStartX = left - containerRect.left
-		// The element's halfway point X coordinate relative the container.
-		const halfwayPointX = elStartX + width / 2
-
-		if (dropTargetX < halfwayPointX) {
-			if (draggedEl.nextElementSibling === el) {
-				return
-			}
-
-			el.insertAdjacentElement('beforebegin', draggedEl)
-			return
-		}
-	}
-
-	if (container.lastElementChild === draggedEl) {
+function drop (container: Element, draggedEl: Element, clientX: number, clientY: number) {
+	const siblings = Array.from(container.children).filter((element) => element !== draggedEl)
+	if (siblings.length === 0) {
 		return
 	}
 
-	container.insertAdjacentElement('beforeend', draggedEl)
+	const rows = groupIntoRows(siblings)
+	const targetRow = findTargetRow(rows, clientY)
+	if (targetRow === undefined) {
+		return
+	}
+
+	const targetCard = targetRow.cards.find((element) => {
+		const { left, width } = element.getBoundingClientRect()
+		return clientX < left + width / 2
+	})
+
+	if (targetCard !== undefined) {
+		if (draggedEl.nextElementSibling === targetCard) {
+			return
+		}
+
+		targetCard.insertAdjacentElement('beforebegin', draggedEl)
+		return
+	}
+
+	const lastCard = targetRow.cards.at(-1)!
+	if (draggedEl.previousElementSibling === lastCard) {
+		return
+	}
+
+	lastCard.insertAdjacentElement('afterend', draggedEl)
+}
+
+function groupIntoRows (elements: Element[]): CardRow[] {
+	const rows: CardRow[] = []
+
+	for (const element of elements) {
+		const { top, bottom } = element.getBoundingClientRect()
+		const row = rows.find((candidate) => top < candidate.bottom && bottom > candidate.top)
+
+		if (row !== undefined) {
+			row.top = Math.min(row.top, top)
+			row.bottom = Math.max(row.bottom, bottom)
+			row.cards.push(element)
+			continue
+		}
+
+		rows.push({ top, bottom, cards: [element] })
+	}
+
+	return rows.sort((a, b) => a.top - b.top)
+}
+
+function findTargetRow (rows: CardRow[], clientY: number): CardRow | undefined {
+	if (rows.length === 0) {
+		return undefined
+	}
+
+	const firstRow = rows[0]!
+	if (clientY < firstRow.top) {
+		return firstRow
+	}
+
+	const lastRow = rows.at(-1)!
+	if (clientY > lastRow.bottom) {
+		return lastRow
+	}
+
+	const containingRow = rows.find(({ top, bottom }) => clientY >= top && clientY <= bottom)
+	if (containingRow !== undefined) {
+		return containingRow
+	}
+
+	return rows.reduce((closest, row) => {
+		const distance = Math.min(Math.abs(clientY - row.top), Math.abs(clientY - row.bottom))
+		const closestDistance = Math.min(Math.abs(clientY - closest.top), Math.abs(clientY - closest.bottom))
+		return distance < closestDistance ? row : closest
+	})
 }

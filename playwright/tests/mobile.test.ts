@@ -90,6 +90,74 @@ test.describe('Mobile playing cards', () => {
 		expect(ranks).toEqual(['Queen', 'King'])
 		expect(await cards.evaluateAll((elements) => elements.map((element) => element.played))).toEqual([true, true])
 	})
+
+	test('reorders cards by row without jumping to another row', async ({ page }) => {
+		await page.goto('/')
+
+		const container = page.locator('[data-c-container]')
+		for (let index = 0; index < 6; index++) {
+			await container.dispatchEvent('dblclick')
+		}
+
+		const cards = page.locator('playing-card')
+		await expect(cards).toHaveCount(6)
+
+		const ranks = ['Ace', 'King', 'Queen', 'Jack', '10', '9']
+		for (const [index, rank] of ranks.entries()) {
+			await cards.nth(index).locator('.pc-rank-input').selectOption(rank)
+		}
+
+		const boxes = await cards.evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().toJSON()))
+		expect(boxes[3]!.top).toBeGreaterThan(boxes[0]!.top)
+
+		const from = { x: boxes[3]!.x + boxes[3]!.width / 2, y: boxes[3]!.y + 10 }
+		const to = { x: from.x - 15, y: from.y }
+		await page.mouse.move(from.x, from.y)
+		await page.mouse.down()
+		await page.mouse.move(from.x - 20, from.y, { steps: 2 })
+		await page.mouse.move(to.x, to.y, { steps: 4 })
+		await page.mouse.up()
+
+		expect(await cards.evaluateAll((elements) => elements.map((element) => element.rank))).toEqual(ranks)
+
+		const movedBoxes = await cards.evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().toJSON()))
+		const crossRowFrom = { x: movedBoxes[3]!.x + movedBoxes[3]!.width / 2, y: movedBoxes[3]!.y + 10 }
+		const crossRowTo = {
+			x: movedBoxes[2]!.x + 10,
+			y: movedBoxes[0]!.y + movedBoxes[0]!.height / 2,
+		}
+		await page.mouse.move(crossRowFrom.x, crossRowFrom.y)
+		await page.mouse.down()
+		await page.mouse.move(crossRowFrom.x - 20, crossRowFrom.y, { steps: 2 })
+		await page.mouse.move(crossRowTo.x, crossRowTo.y, { steps: 4 })
+		await page.mouse.up()
+
+		expect(await cards.evaluateAll((elements) => elements.map((element) => element.rank))).toEqual(['Ace', 'King', 'Jack', 'Queen', '10', '9'])
+	})
+
+	test('reorder cards via mouse drag in the mobile UI', async ({ page }) => {
+		await page.goto('/')
+
+		const container = page.locator('[data-c-container]')
+		await container.dblclick()
+		await container.dblclick()
+
+		const cards = page.locator('playing-card')
+		await cards.nth(0).locator('.pc-rank-input').selectOption('King')
+		await cards.nth(1).locator('.pc-rank-input').selectOption('Queen')
+
+		const boxes = await cards.evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().toJSON()))
+		const from = { x: boxes[1]!.x + boxes[1]!.width / 2, y: boxes[1]!.y + 10 }
+		const to = { x: boxes[0]!.x + 10, y: boxes[0]!.y + 10 }
+		await page.mouse.move(from.x, from.y)
+		await page.mouse.down()
+		await page.mouse.move(from.x - 20, from.y, { steps: 3 })
+		await page.mouse.move(to.x, to.y, { steps: 5 })
+		await page.mouse.up()
+
+		const ranks = await cards.evaluateAll((elements) => elements.map((element) => element.rank))
+		expect(ranks).toEqual(['Queen', 'King'])
+	})
 })
 
 test.describe('Mobile jokers', () => {
