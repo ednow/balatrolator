@@ -106,6 +106,14 @@ const lightCss = /*css*/`
 		opacity: 0.55;
 	}
 
+	playing-card.--is-held-steel .pc-enhancement-input {
+		color: var(--c-blue-dark);
+		border-color: var(--c-blue-dark);
+		background-color: var(--c-white);
+		font-weight: bold;
+		box-shadow: 0 0 0 2px var(--c-blue-dark);
+	}
+
 	.pc-play-toggle {
 		display: none;
 	}
@@ -302,6 +310,8 @@ export class PlayingCard extends MovableCard {
 			this.#syncSuitColorClass()
 		}
 
+		this.#syncHeldSteelClass()
+
 		// Allow clicking the card to toggle its played state.
 		this.addEventListener('click', (event) => {
 			if (!event.isTrusted || isInteractive(event)) {
@@ -370,6 +380,7 @@ export class PlayingCard extends MovableCard {
 	set enhancement (enhancement) {
 		this.#enhancement = enhancement
 
+		this.#syncHeldSteelClass()
 		this.queueRender()
 	}
 
@@ -392,6 +403,7 @@ export class PlayingCard extends MovableCard {
 
 		this.classList[this.played ? 'add' : 'remove']('--is-played')
 
+		this.#syncHeldSteelClass()
 		this.queueRender()
 	}
 
@@ -404,7 +416,13 @@ export class PlayingCard extends MovableCard {
 
 		this.classList[this.debuffed ? 'add' : 'remove']('--is-debuffed')
 
+		this.#syncHeldSteelClass()
 		this.queueRender()
+	}
+
+	#syncHeldSteelClass () {
+		const isHeldSteel = !this.played && this.enhancement === 'Steel' && !this.debuffed
+		this.classList[isHeldSteel ? 'add' : 'remove']('--is-held-steel')
 	}
 
 	get count () {

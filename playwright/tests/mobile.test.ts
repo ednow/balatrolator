@@ -98,6 +98,29 @@ test.describe('Mobile playing cards', () => {
 		await expect(card).toHaveCSS('opacity', '1')
 	})
 
+	test('highlight Steel when a held card still takes effect', async ({ page }) => {
+		await page.goto('/')
+
+		await page.locator('[data-c-container]').dblclick()
+		const card = page.locator('playing-card').first()
+		await card.locator('.pc-enhancement-input').selectOption('Steel')
+		await card.locator('.pc-play-toggle input').click()
+
+		await expect(card).not.toHaveClass(/--is-played/)
+		await expect(card).toHaveClass(/--is-held-steel/)
+		await expect(card.locator('.pc-enhancement-input')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+
+		await card.locator('.pc-play-toggle input').click()
+
+		await expect(card).toHaveClass(/--is-played/)
+		await expect(card).not.toHaveClass(/--is-held-steel/)
+
+		await card.locator('.pc-play-toggle input').click()
+		await card.locator('.pc-enhancement-input').selectOption('None')
+
+		await expect(card).not.toHaveClass(/--is-held-steel/)
+	})
+
 	test('reorder cards via touch drag without toggling their played state', async ({ page }) => {
 		await page.goto('/')
 
