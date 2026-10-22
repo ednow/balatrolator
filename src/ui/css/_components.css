@@ -723,3 +723,208 @@ html.mobile-ui th,
 html.mobile-ui td {
 	padding: 0.25rem 0.5rem;
 }
+
+/* MOBILE PANELS (levels, round, saves) */
+
+html.mobile-ui :is(.form__hands, .form__round, .header .saves).--mobile-open {
+	padding: 0.75em;
+	font-size: 1.3333rem;
+	line-height: 1.35;
+}
+
+html.mobile-ui :is(.form__hands, .form__round, .header .saves).--mobile-open .panel-header {
+	display: flex;
+	inline-size: 100%;
+}
+
+html.mobile-ui :is(.form__hands, .form__round, .header .saves).--mobile-open .panel-header h2 {
+	font-size: 1.35em;
+}
+
+html.mobile-ui :is(.form__hands, .form__round, .header .saves).--mobile-open .button {
+	min-block-size: 2.5em;
+	padding-inline: 0.8em;
+	font-size: 0.95em;
+}
+
+html.mobile-ui :is(.form__hands, .form__round, .header .saves).--mobile-open .button.--icon {
+	padding-inline: 0.5em;
+}
+
+html.mobile-ui :is(.form__hands, .form__round, .header .saves).--mobile-open .text-input {
+	block-size: 2.35em;
+	font-size: 0.95em;
+}
+
+/* LEVELS */
+
+html.mobile-ui .form__hands.--mobile-open > .stack {
+	display: flex;
+	flex-direction: column;
+	block-size: 100%;
+	min-block-size: 0;
+}
+
+html.mobile-ui .form__hands.--mobile-open [data-h-container] {
+	flex: 1 1 auto;
+	display: grid;
+	grid-auto-rows: minmax(2.9em, 1fr);
+	min-block-size: 0;
+	margin-block-start: 0.5em;
+	overflow-y: auto;
+}
+
+html.mobile-ui .form__hands.--mobile-open [data-h-container] > * + * {
+	margin-block-start: 0;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card {
+	border-block-end: 1px solid hsl(249 10% 84%);
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card:last-child {
+	border-block-end: none;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card .hlc-row {
+	block-size: 100%;
+	align-items: center;
+	gap: 0.35em;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card .hlc-hand-name {
+	font-size: 1em;
+	font-weight: bold;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card .hlc-base-score {
+	font-size: 0.85em;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card .input-list {
+	gap: 0.4em;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card .label {
+	color: var(--c-text-disabled);
+	font-size: 0.8em;
+}
+
+html.mobile-ui .form__hands.--mobile-open hand-level-card .hlc-level-input,
+html.mobile-ui .form__hands.--mobile-open hand-level-card .hlc-plays-input {
+	inline-size: 3.25em;
+	block-size: 2.25em;
+}
+
+/* ROUND DATA */
+
+html.mobile-ui .form__round.--mobile-open > .stack {
+	block-size: 100%;
+}
+
+html.mobile-ui .form__round.--mobile-open .list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.5em;
+	align-content: start;
+}
+
+html.mobile-ui .form__round.--mobile-open .card-stack {
+	display: contents;
+}
+
+html.mobile-ui .form__round.--mobile-open .card {
+	padding: 0.4em 0.5em;
+}
+
+html.mobile-ui .form__round.--mobile-open .label {
+	font-size: 0.9em;
+}
+
+html.mobile-ui .form__round.--mobile-open .secondary-label {
+	font-size: 0.78em;
+}
+
+html.mobile-ui .form__round.--mobile-open .observatory-card {
+	grid-column: 1 / -1;
+}
+
+html.mobile-ui .form__round.--mobile-open .r-observatory-input-list {
+	grid-template-columns: minmax(0, 1fr);
+	gap: 0.2em;
+}
+
+html.mobile-ui .form__round.--mobile-open .r-observatory-input-list > * {
+	min-block-size: 2.25em;
+}
+
+html.mobile-ui .form__round.--mobile-open :is(.r-hands-input, .r-discards-input, .r-money-input, .r-joker-slots-input, .r-observatory-input) {
+	inline-size: 3.5em;
+	block-size: 2.25em;
+}
+
+html.mobile-ui .form__round.--mobile-open :is(.r-blind-name-input, .r-deck-input) {
+	inline-size: 7.5em;
+}
+
+/* SAVES */
+
+html.mobile-ui .header .saves.--mobile-open > .stack {
+	display: flex;
+	flex-direction: column;
+	block-size: 100%;
+	min-block-size: 0;
+}
+
+html.mobile-ui .header .saves.--mobile-open .table-wrapper {
+	flex: 1 1 auto;
+	min-block-size: 0;
+	max-block-size: none;
+	overflow: auto;
+}
+
+html.mobile-ui .header .saves.--mobile-open th,
+html.mobile-ui .header .saves.--mobile-open td {
+	padding: 0.45em 0.35em;
+}
+
+html.mobile-ui .header .saves.--mobile-open th {
+	white-space: nowrap;
+}
+
+html.mobile-ui .header .saves.--mobile-open .button {
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
+html.mobile-ui .header .saves.--mobile-open [data-s-form] {
+	margin-block-start: auto;
+	padding-block-start: 0.5em;
+	border-block-start: 1px solid hsl(249 10% 84%);
+}
+
+html.mobile-ui .header .saves.--mobile-open .s-save-container {
+	flex-wrap: nowrap;
+	align-items: stretch;
+}
+
+html.mobile-ui .header .saves.--mobile-open .s-save-name {
+	flex: 1 1 auto;
+	min-inline-size: 0;
+}
+
+html.mobile-ui .header .saves.--mobile-open .s-save-name-input {
+	inline-size: 100%;
+}
+
+/* Tap the green score card to cycle luck on mobile. */
+
+html.mobile-ui .score-card {
+	cursor: pointer;
+	touch-action: manipulation;
+	user-select: none;
+}
+
+html.mobile-ui .score-card .luck-switch::after {
+	content: ' ↻';
+}

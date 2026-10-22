@@ -770,6 +770,21 @@ function initMobilePanels () {
 	}
 }
 
+function initMobileLuckSwitch () {
+	scoreCardContainer.addEventListener('click', (event) => {
+		if (!isMobileUi()) {
+			return
+		}
+
+		const target = event.target as Element
+		if (target.closest('.score-card') === null) {
+			return
+		}
+
+		cycleSelectedLuck()
+	})
+}
+
 function openScoreLogModal () {
 	if (!scoreLogModalEl.open) {
 		scoreLogModalEl.showModal()
@@ -833,6 +848,7 @@ export function init () {
 	populateSavesUi()
 	initMobilePanels()
 	initMobileBackGesture()
+	initMobileLuckSwitch()
 	initScoreFab()
 	initScoreLogModal()
 
