@@ -14,7 +14,36 @@ const lightCss = /*css*/`
 		--c-background-light: var(--c-red-light);
 		--c-background-lighter: var(--c-red-lighter);
 
+		position: relative;
 		display: block;
+		transition: opacity 0.15s;
+	}
+
+	joker-card.--is-inactive {
+		opacity: 0.55;
+	}
+
+	.jc-active-label {
+		display: none;
+	}
+
+	html.mobile-ui joker-card:not(.--has-is-active) .jc-action-list {
+		display: none;
+	}
+
+	html.mobile-ui joker-card .jc-action-list .button {
+		display: none;
+	}
+
+	html.mobile-ui joker-card .jc-action-list {
+		align-items: center;
+		min-block-size: 1.5rem;
+	}
+
+	html.mobile-ui joker-card .jc-active-label {
+		display: inline;
+		font-size: 0.8rem;
+		font-weight: bold;
 	}
 
 	@media (prefers-contrast: more) {
@@ -243,6 +272,8 @@ export class JokerCard extends MovableCard {
 			this.#syncSuitColorClass()
 		}
 
+		this.#syncActiveClass()
+
 		this.addEventListener('keydown', (event) => {
 			const key = getShortcutKey(event)
 			const command = this.#commands[key]
@@ -271,6 +302,7 @@ export class JokerCard extends MovableCard {
 		this.classList[definition.hasRankInput ? 'add' : 'remove']('--has-rank')
 		this.classList[definition.hasSuitInput ? 'add' : 'remove']('--has-suit')
 
+		this.#syncActiveClass()
 		this.queueRender()
 	}
 
@@ -360,7 +392,13 @@ export class JokerCard extends MovableCard {
 	set active (active) {
 		this.#active = active
 
+		this.#syncActiveClass()
 		this.queueRender()
+	}
+
+	#syncActiveClass () {
+		const isInactive = JOKER_DEFINITIONS[this.#jokerName].hasIsActiveInput && !this.#active
+		this.classList[isInactive ? 'add' : 'remove']('--is-inactive')
 	}
 
 	toString () {
@@ -379,7 +417,7 @@ export class JokerCard extends MovableCard {
 
 		return html`
 			<div class="stack">
-				<div class="action-list">
+				<div class="action-list jc-action-list">
 					<button
 						class="button --icon"
 						?disabled="${this.previousElementSibling === null}"
@@ -401,13 +439,14 @@ export class JokerCard extends MovableCard {
 							value="is-active"
 							checked
 							.checked="${this.active}"
+							aria-label="${t('active')}"
 							@change="${(event: Event) => {
 								const input = event.target as HTMLInputElement
 								this.active = input.checked
 							}}"
 						>
 
-						<span class="visually-hidden">${t('active')}</span>
+						<span class="jc-active-label" aria-hidden="true">${t('activeLabel')}</span>
 					</label>
 
 					<button
@@ -633,6 +672,18 @@ export class JokerCard extends MovableCard {
 						</select>
 					</label>
 				</div>
+
+				<button
+					class="button --icon jc-remove-button card-remove-button"
+					type="button"
+					@click="${() => this.remove()}"
+				>
+					<span class="visually-hidden">${t('removeJoker')}</span>
+
+					<svg class="icon">
+						<use xlink:href="#trash-icon"></use>
+					</svg>
+				</button>
 			</div>
 		`
 	}

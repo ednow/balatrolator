@@ -2,12 +2,8 @@ import { html } from 'lit-html'
 
 import type { BlindName, Card, Edition, Enhancement, Rank, Seal, Suit } from '#lib/types.ts'
 import { getLang, t, term, termEdition, termEnhancement, termSeal } from '#ui/i18n.ts'
-import { isMobileUi } from '#ui/mobileUi.ts'
 import { MovableCard } from './MovableCard.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
-
-const REMOVE_LONG_PRESS_MS = 500
-const REMOVE_LONG_PRESS_TOLERANCE_PX = 10
 
 const lightCss = /*css*/`
 	playing-card {
@@ -19,6 +15,7 @@ const lightCss = /*css*/`
 
 		position: relative;
 		display: block;
+		transition: opacity 0.15s;
 	}
 
 	@media (prefers-contrast: more) {
@@ -105,29 +102,29 @@ const lightCss = /*css*/`
 		display: none;
 	}
 
-	.pc-remove-button {
+	playing-card:not(.--is-played) {
+		opacity: 0.55;
+	}
+
+	.pc-play-toggle {
 		display: none;
 	}
 
-	html.mobile-ui playing-card.--is-remove-armed .pc-remove-button {
-		position: absolute;
-		z-index: 5;
-		inset-block-start: 50%;
-		inset-inline-end: -0.7rem;
-		transform: translateY(-50%);
-		display: inline flex;
-		inline-size: 2rem;
-		block-size: 2rem;
-		min-block-size: 0;
-		padding: 0;
-		border-radius: 50%;
-		box-shadow: 0 1px 4px hsl(0 0% 0% / 40%);
-		touch-action: manipulation;
+	html.mobile-ui playing-card .pc-play-toggle {
+		display: inline-flex;
+		align-items: center;
+		align-self: flex-end;
+		gap: 0.25rem;
+		margin-block-start: 0.25rem;
+		padding: 0.1rem 0.35rem;
+		border-radius: 999px;
+		background-color: var(--c-background-lighter);
+		font-size: 0.75rem;
+		line-height: 1.2;
 	}
 
-	html.mobile-ui playing-card.--is-remove-armed {
-		outline: 2px solid var(--c-red-dark);
-		outline-offset: 1px;
+	html.mobile-ui playing-card .pc-play-toggle .label {
+		font-weight: bold;
 	}
 
 	playing-card:where([draggable="true"]) {
@@ -251,11 +248,6 @@ export class PlayingCard extends MovableCard {
 	#enhancement: Enhancement = 'None'
 	#seal: Seal = 'None'
 
-	#removePressTimer: ReturnType<typeof setTimeout> | undefined
-	#removePressOrigin: { x: number, y: number } | undefined
-	#removeArmed = false
-	#suppressNextClick = false
-
 	#commands: Record<string, { action: (event: KeyboardEvent) => void }> = {
 		ArrowLeft: {
 			action: () => this.swapLeft(),
@@ -316,26 +308,8 @@ export class PlayingCard extends MovableCard {
 				return
 			}
 
-			if (this.#suppressNextClick) {
-				this.#suppressNextClick = false
-				return
-			}
-
 			this.played = !this.played
 		}, { capture: true })
-
-		this.addEventListener('pointerdown', this.#handlePointerDown)
-		this.addEventListener('pointermove', this.#handlePointerMove)
-		this.addEventListener('pointerup', this.#handlePointerEnd)
-		this.addEventListener('pointercancel', this.#handlePointerEnd)
-		this.addEventListener('pointerleave', this.#handlePointerEnd)
-		this.addEventListener('touchend', this.#handleTouchEnd, { capture: true, passive: false })
-		this.addEventListener('dragstart', this.#handlePointerEnd)
-		this.addEventListener('contextmenu', (event) => {
-			if (isMobileUi()) {
-				event.preventDefault()
-			}
-		})
 
 		this.addEventListener('keydown', (event) => {
 			const key = getShortcutKey(event)
@@ -344,99 +318,6 @@ export class PlayingCard extends MovableCard {
 				command.action(event)
 			}
 		})
-	}
-
-	connectedCallback () {
-		super.connectedCallback()
-
-		document.addEventListener('pointerdown', this.#handleDocumentPointerDown, true)
-	}
-
-	disconnectedCallback () {
-		super.disconnectedCallback()
-
-		document.removeEventListener('pointerdown', this.#handleDocumentPointerDown, true)
-		this.#handlePointerEnd()
-		this.#setRemoveArmed(false)
-	}
-
-	#handleDocumentPointerDown = (event: PointerEvent) => {
-		if (!this.#removeArmed || event.composedPath().includes(this)) {
-			return
-		}
-
-		this.#setRemoveArmed(false)
-	}
-
-	#handlePointerDown = (event: PointerEvent) => {
-		if (!isMobileUi() || event.button !== 0) {
-			return
-		}
-
-		if (this.#removeArmed) {
-			// Tapping the floating button itself must be left to the button’s click handler.
-			if (isRemoveButton(event)) {
-				return
-			}
-
-			this.#setRemoveArmed(false)
-			this.#suppressNextClick = true
-			return
-		}
-
-		this.#suppressNextClick = false
-
-		if (isButton(event) || (event.pointerType === 'mouse' && isInteractive(event))) {
-			return
-		}
-
-		this.#cancelRemovePress()
-		this.#removePressOrigin = { x: event.clientX, y: event.clientY }
-		this.#removePressTimer = setTimeout(() => {
-			this.#removePressTimer = undefined
-			this.#removePressOrigin = undefined
-			this.#setRemoveArmed(true)
-			this.#suppressNextClick = true
-			navigator.vibrate?.(15)
-		}, REMOVE_LONG_PRESS_MS)
-	}
-
-	#handleTouchEnd = (event: TouchEvent) => {
-		// Keep a long press from also activating a select underneath the finger.
-		if (this.#suppressNextClick && !isRemoveButton(event)) {
-			event.preventDefault()
-		}
-	}
-
-	#handlePointerMove = (event: PointerEvent) => {
-		const origin = this.#removePressOrigin
-		if (!origin) {
-			return
-		}
-
-		const deltaX = event.clientX - origin.x
-		const deltaY = event.clientY - origin.y
-		if (Math.hypot(deltaX, deltaY) > REMOVE_LONG_PRESS_TOLERANCE_PX) {
-			this.#cancelRemovePress()
-		}
-	}
-
-	#handlePointerEnd = () => {
-		this.#cancelRemovePress()
-	}
-
-	#cancelRemovePress () {
-		if (this.#removePressTimer !== undefined) {
-			clearTimeout(this.#removePressTimer)
-			this.#removePressTimer = undefined
-		}
-
-		this.#removePressOrigin = undefined
-	}
-
-	#setRemoveArmed (armed: boolean) {
-		this.#removeArmed = armed
-		this.classList[armed ? 'add' : 'remove']('--is-remove-armed')
 	}
 
 	get index () {
@@ -804,8 +685,23 @@ export class PlayingCard extends MovableCard {
 					</label>
 				</div>
 
+				<label class="pc-play-toggle checkbox-control">
+					<input
+						name="card-is-played-toggle-${this.uniqueId}"
+						type="checkbox"
+						value="is-played"
+						.checked="${this.played}"
+						@change="${(event: Event) => {
+							const input = event.target as HTMLInputElement
+							this.played = input.checked
+						}}"
+					>
+
+					<span class="label">${t('playCard')}</span>
+				</label>
+
 				<button
-					class="button --icon pc-remove-button"
+					class="button --icon pc-remove-button card-remove-button"
 					type="button"
 					@click="${() => this.remove()}"
 				>
@@ -854,16 +750,6 @@ export class PlayingCard extends MovableCard {
 			count: this.count,
 		})
 	}
-}
-
-function isButton (event: Event): boolean {
-	const target = event.target
-	return target instanceof Element && target.closest('button') !== null
-}
-
-function isRemoveButton (event: Event): boolean {
-	const target = event.target
-	return target instanceof Element && target.closest('.pc-remove-button') !== null
 }
 
 function isInteractive (event: Event): boolean {

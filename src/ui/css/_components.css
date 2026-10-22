@@ -385,6 +385,41 @@ html.mobile-ui .card-dropzone {
 	max-inline-size: var(--s-card-max-inline-size);
 }
 
+.card-remove-button {
+	display: none;
+}
+
+html.mobile-ui .card.--is-remove-armed .card-remove-button {
+	position: absolute;
+	z-index: 5;
+	inset-block-start: 50%;
+	inset-inline-end: -0.7rem;
+	transform: translateY(-50%);
+	display: inline flex;
+	inline-size: 2rem;
+	block-size: 2rem;
+	min-block-size: 0;
+	padding: 0;
+	border-radius: 50%;
+	box-shadow: 0 1px 4px hsl(0 0% 0% / 40%);
+	touch-action: manipulation;
+}
+
+html.mobile-ui .card.--is-remove-armed {
+	outline: 2px solid var(--c-red-dark);
+	outline-offset: 1px;
+}
+
+html.mobile-ui :is(joker-card, playing-card) {
+	touch-action: pan-y;
+}
+
+html.mobile-ui .card.--is-dragging {
+	z-index: 10;
+	opacity: 0.85;
+	box-shadow: 0 6px 16px hsl(0 0% 0% / 35%);
+}
+
 .observatory-card:not(.increase-specificity) {
 	max-inline-size: 46rem;
 }
