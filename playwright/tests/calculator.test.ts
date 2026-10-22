@@ -420,3 +420,19 @@ test.describe('Playing cards', () => {
 		await expect(playingCard.getByRole('checkbox', { name: /^Debuffed\?$/ })).toBeVisible()
 	})
 })
+
+test.describe('Wide desktop layout', () => {
+	test.use({ viewport: { width: 1920, height: 1080 } })
+
+	test('shows every hand level without scrolling', async ({ page }) => {
+		await page.goto('/')
+
+		const levelCards = page.locator('[data-h-container] hand-level-card')
+		await expect(levelCards).toHaveCount(12)
+
+		const overflow = await page.locator('.form__hands > .stack').evaluate((element) => {
+			return element.scrollHeight - element.clientHeight
+		})
+		expect(overflow).toBe(0)
+	})
+})
