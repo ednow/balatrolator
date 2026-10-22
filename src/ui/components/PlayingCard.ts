@@ -2,8 +2,12 @@ import { html } from 'lit-html'
 
 import type { BlindName, Card, Edition, Enhancement, Rank, Seal, Suit } from '#lib/types.ts'
 import { getLang, t, term, termEdition, termEnhancement, termSeal } from '#ui/i18n.ts'
+import { isMobileUi } from '#ui/mobileUi.ts'
 import { MovableCard } from './MovableCard.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
+
+const REMOVE_LONG_PRESS_MS = 500
+const REMOVE_LONG_PRESS_TOLERANCE_PX = 10
 
 const lightCss = /*css*/`
 	playing-card {
@@ -13,6 +17,7 @@ const lightCss = /*css*/`
 		--c-background-light: var(--c-yellow-light);
 		--c-background-lighter: var(--c-yellow-lighter);
 
+		position: relative;
 		display: block;
 	}
 
@@ -22,6 +27,107 @@ const lightCss = /*css*/`
 			--c-background-light: var(--c-grey-light);
 			--c-background-lighter: var(--c-white);
 		}
+	}
+
+	html.mobile-ui playing-card {
+		user-select: none;
+		-webkit-touch-callout: none;
+	}
+
+	/* Mobile: replace the action row with a long-press remove button. */
+	html.mobile-ui playing-card .pc-action-list {
+		display: none;
+	}
+
+	playing-card .pc-modifier-row {
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	playing-card .pc-modifier-row > * {
+		flex: 0 0 auto;
+	}
+
+	html.mobile-ui playing-card .pc-modifier-row {
+		flex-direction: row;
+		gap: 0.25rem;
+		align-items: stretch;
+	}
+
+	html.mobile-ui playing-card .pc-modifier-row > .control-box {
+		position: relative;
+		display: block;
+		flex: 1 1 2.2rem;
+		min-inline-size: 2.2rem;
+	}
+
+	html.mobile-ui playing-card .pc-modifier-row > .control-box > .label {
+		display: none;
+	}
+
+	/* With no value selected, the field name takes the place of the empty option’s text. */
+	html.mobile-ui playing-card .pc-modifier:has(select option:checked[value="Base"], select option:checked[value="None"]) select {
+		color: transparent;
+	}
+
+	html.mobile-ui playing-card .pc-modifier:has(select option:checked[value="Base"], select option:checked[value="None"])::before {
+		content: attr(data-empty-label);
+		position: absolute;
+		z-index: 1;
+		inset-block: 0;
+		inset-inline: 0.25rem;
+		display: block;
+		overflow: hidden;
+		padding-inline: 0.1rem;
+		font-size: 0.8rem;
+		line-height: 2rem;
+		text-align: center;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		pointer-events: none;
+	}
+
+	html.mobile-ui playing-card .pc-modifier-row select {
+		inline-size: 100%;
+		min-inline-size: 0;
+		max-inline-size: none;
+		block-size: 1.75rem;
+		padding-inline: 0.1rem;
+		border-width: 1px;
+		font-size: 0.8rem;
+	}
+
+	html.mobile-ui playing-card .pc-modifier-row select::picker-icon {
+		display: none;
+	}
+
+	html.mobile-ui playing-card .pc-seal-input selectedcontent .pc-seal-orb {
+		display: none;
+	}
+
+	.pc-remove-button {
+		display: none;
+	}
+
+	html.mobile-ui playing-card.--is-remove-armed .pc-remove-button {
+		position: absolute;
+		z-index: 5;
+		inset-block-start: 50%;
+		inset-inline-end: -0.7rem;
+		transform: translateY(-50%);
+		display: inline flex;
+		inline-size: 2rem;
+		block-size: 2rem;
+		min-block-size: 0;
+		padding: 0;
+		border-radius: 50%;
+		box-shadow: 0 1px 4px hsl(0 0% 0% / 40%);
+		touch-action: manipulation;
+	}
+
+	html.mobile-ui playing-card.--is-remove-armed {
+		outline: 2px solid var(--c-red-dark);
+		outline-offset: 1px;
 	}
 
 	playing-card:where([draggable="true"]) {
@@ -145,6 +251,11 @@ export class PlayingCard extends MovableCard {
 	#enhancement: Enhancement = 'None'
 	#seal: Seal = 'None'
 
+	#removePressTimer: ReturnType<typeof setTimeout> | undefined
+	#removePressOrigin: { x: number, y: number } | undefined
+	#removeArmed = false
+	#suppressNextClick = false
+
 	#commands: Record<string, { action: (event: KeyboardEvent) => void }> = {
 		ArrowLeft: {
 			action: () => this.swapLeft(),
@@ -201,10 +312,30 @@ export class PlayingCard extends MovableCard {
 
 		// Allow clicking the card to toggle its played state.
 		this.addEventListener('click', (event) => {
-			if (event.isTrusted && !isInteractive(event)) {
-				this.played = !this.played
+			if (!event.isTrusted || isInteractive(event)) {
+				return
 			}
+
+			if (this.#suppressNextClick) {
+				this.#suppressNextClick = false
+				return
+			}
+
+			this.played = !this.played
 		}, { capture: true })
+
+		this.addEventListener('pointerdown', this.#handlePointerDown)
+		this.addEventListener('pointermove', this.#handlePointerMove)
+		this.addEventListener('pointerup', this.#handlePointerEnd)
+		this.addEventListener('pointercancel', this.#handlePointerEnd)
+		this.addEventListener('pointerleave', this.#handlePointerEnd)
+		this.addEventListener('touchend', this.#handleTouchEnd, { capture: true, passive: false })
+		this.addEventListener('dragstart', this.#handlePointerEnd)
+		this.addEventListener('contextmenu', (event) => {
+			if (isMobileUi()) {
+				event.preventDefault()
+			}
+		})
 
 		this.addEventListener('keydown', (event) => {
 			const key = getShortcutKey(event)
@@ -213,6 +344,99 @@ export class PlayingCard extends MovableCard {
 				command.action(event)
 			}
 		})
+	}
+
+	connectedCallback () {
+		super.connectedCallback()
+
+		document.addEventListener('pointerdown', this.#handleDocumentPointerDown, true)
+	}
+
+	disconnectedCallback () {
+		super.disconnectedCallback()
+
+		document.removeEventListener('pointerdown', this.#handleDocumentPointerDown, true)
+		this.#handlePointerEnd()
+		this.#setRemoveArmed(false)
+	}
+
+	#handleDocumentPointerDown = (event: PointerEvent) => {
+		if (!this.#removeArmed || event.composedPath().includes(this)) {
+			return
+		}
+
+		this.#setRemoveArmed(false)
+	}
+
+	#handlePointerDown = (event: PointerEvent) => {
+		if (!isMobileUi() || event.button !== 0) {
+			return
+		}
+
+		if (this.#removeArmed) {
+			// Tapping the floating button itself must be left to the button’s click handler.
+			if (isRemoveButton(event)) {
+				return
+			}
+
+			this.#setRemoveArmed(false)
+			this.#suppressNextClick = true
+			return
+		}
+
+		this.#suppressNextClick = false
+
+		if (isButton(event) || (event.pointerType === 'mouse' && isInteractive(event))) {
+			return
+		}
+
+		this.#cancelRemovePress()
+		this.#removePressOrigin = { x: event.clientX, y: event.clientY }
+		this.#removePressTimer = setTimeout(() => {
+			this.#removePressTimer = undefined
+			this.#removePressOrigin = undefined
+			this.#setRemoveArmed(true)
+			this.#suppressNextClick = true
+			navigator.vibrate?.(15)
+		}, REMOVE_LONG_PRESS_MS)
+	}
+
+	#handleTouchEnd = (event: TouchEvent) => {
+		// Keep a long press from also activating a select underneath the finger.
+		if (this.#suppressNextClick && !isRemoveButton(event)) {
+			event.preventDefault()
+		}
+	}
+
+	#handlePointerMove = (event: PointerEvent) => {
+		const origin = this.#removePressOrigin
+		if (!origin) {
+			return
+		}
+
+		const deltaX = event.clientX - origin.x
+		const deltaY = event.clientY - origin.y
+		if (Math.hypot(deltaX, deltaY) > REMOVE_LONG_PRESS_TOLERANCE_PX) {
+			this.#cancelRemovePress()
+		}
+	}
+
+	#handlePointerEnd = () => {
+		this.#cancelRemovePress()
+	}
+
+	#cancelRemovePress () {
+		if (this.#removePressTimer !== undefined) {
+			clearTimeout(this.#removePressTimer)
+			this.#removePressTimer = undefined
+		}
+
+		this.#removePressOrigin = undefined
+	}
+
+	#setRemoveArmed (armed: boolean) {
+		this.#removeArmed = armed
+		this.classList[armed ? 'add' : 'remove']('--is-remove-armed')
 	}
 
 	get index () {
@@ -330,7 +554,7 @@ export class PlayingCard extends MovableCard {
 	template () {
 		return html`
 			<div class="stack">
-				<div class="action-list">
+				<div class="action-list pc-action-list">
 					<button
 						class="button --icon"
 						?disabled="${this.previousElementSibling === null}"
@@ -493,87 +717,104 @@ export class PlayingCard extends MovableCard {
 					<span class="label">${t('debuffed')}</span>
 				</label>
 
-				<label class="control-box --flat --grow">
-					<span class="label truncate">${t('edition')}</span>
+				<div class="input-list pc-modifier-row">
+					<label class="control-box --flat --grow pc-modifier" data-empty-label="${t('edition')}">
+						<span class="label truncate">${t('edition')}</span>
 
-					<select
-						class="pc-edition-input select"
-						id="card-edition-${this.uniqueId}"
-						name="card-edition-${this.uniqueId}"
-						.value="${this.edition}"
-						@change="${(event: Event) => {
-							const input = event.target as HTMLInputElement
-							this.edition = input.value as Edition
-						}}"
-					>
-						<option value="Base" selected>${termEdition('Base')}</option>
-						<option value="Foil">${termEdition('Foil')}</option>
-						<option value="Holographic">${termEdition('Holographic')}</option>
-						<option value="Polychrome">${termEdition('Polychrome')}</option>
-					</select>
-				</label>
+						<select
+							class="pc-edition-input select"
+							aria-label="${t('edition')}"
+							id="card-edition-${this.uniqueId}"
+							name="card-edition-${this.uniqueId}"
+							.value="${this.edition}"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.edition = input.value as Edition
+							}}"
+						>
+							<option value="Base" selected>${termEdition('Base')}</option>
+							<option value="Foil">${termEdition('Foil')}</option>
+							<option value="Holographic">${termEdition('Holographic')}</option>
+							<option value="Polychrome">${termEdition('Polychrome')}</option>
+						</select>
+					</label>
 
-				<label class="control-box --flat --grow">
-					<span class="label truncate">${t('enhancement')}</span>
+					<label class="control-box --flat --grow pc-modifier" data-empty-label="${t('enhancement')}">
+						<span class="label truncate">${t('enhancement')}</span>
 
-					<select
-						class="pc-enhancement-input select"
-						id="card-enhancement-${this.uniqueId}"
-						name="card-enhancement-${this.uniqueId}"
-						.value="${this.enhancement}"
-						@change="${(event: Event) => {
-							const input = event.target as HTMLInputElement
-							this.enhancement = input.value as Enhancement
-						}}"
-					>
-						<option value="None" selected>${termEnhancement('None')}</option>
-						<option value="Bonus">${termEnhancement('Bonus')}</option>
-						<option value="Mult">${termEnhancement('Mult')}</option>
-						<option value="Wild">${termEnhancement('Wild')}</option>
-						<option value="Glass">${termEnhancement('Glass')}</option>
-						<option value="Steel">${termEnhancement('Steel')}</option>
-						<option value="Stone">${termEnhancement('Stone')}</option>
-						<option value="Gold">${termEnhancement('Gold')}</option>
-						<option value="Lucky">${termEnhancement('Lucky')}</option>
-					</select>
-				</label>
+						<select
+							class="pc-enhancement-input select"
+							aria-label="${t('enhancement')}"
+							id="card-enhancement-${this.uniqueId}"
+							name="card-enhancement-${this.uniqueId}"
+							.value="${this.enhancement}"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.enhancement = input.value as Enhancement
+							}}"
+						>
+							<option value="None" selected>${termEnhancement('None')}</option>
+							<option value="Bonus">${termEnhancement('Bonus')}</option>
+							<option value="Mult">${termEnhancement('Mult')}</option>
+							<option value="Wild">${termEnhancement('Wild')}</option>
+							<option value="Glass">${termEnhancement('Glass')}</option>
+							<option value="Steel">${termEnhancement('Steel')}</option>
+							<option value="Stone">${termEnhancement('Stone')}</option>
+							<option value="Gold">${termEnhancement('Gold')}</option>
+							<option value="Lucky">${termEnhancement('Lucky')}</option>
+						</select>
+					</label>
 
-				<label class="control-box --flat --grow">
-					<span class="label truncate">${t('seal')}</span>
+					<label class="control-box --flat --grow pc-modifier" data-empty-label="${t('seal')}">
+						<span class="label truncate">${t('seal')}</span>
 
-					<select
-						class="pc-seal-input select"
-						id="card-seal-${this.uniqueId}"
-						name="card-seal-${this.uniqueId}"
-						.value="${this.seal}"
-						@change="${(event: Event) => {
-							const input = event.target as HTMLInputElement
-							this.seal = input.value as Seal
-						}}"
-					>
-						<button><selectedcontent></selectedcontent></button>
-						<option value="None" selected>
-							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: transparent"></span>
-							<span data-term-kind="seal-color" data-term-label="None"></span>
-						</option>
-						<option value="Gold">
-							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-gold)"></span>
-							<span data-term-kind="seal-color" data-term-label="Gold"></span>
-						</option>
-						<option value="Red">
-							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-red)"></span>
-							<span data-term-kind="seal-color" data-term-label="Red"></span>
-						</option>
-						<option value="Blue">
-							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-blue)"></span>
-							<span data-term-kind="seal-color" data-term-label="Blue"></span>
-						</option>
-						<option value="Purple">
-							<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-purple)"></span>
-							<span data-term-kind="seal-color" data-term-label="Purple"></span>
-						</option>
-					</select>
-				</label>
+						<select
+							class="pc-seal-input select"
+							aria-label="${t('seal')}"
+							id="card-seal-${this.uniqueId}"
+							name="card-seal-${this.uniqueId}"
+							.value="${this.seal}"
+							@change="${(event: Event) => {
+								const input = event.target as HTMLInputElement
+								this.seal = input.value as Seal
+							}}"
+						>
+							<button><selectedcontent></selectedcontent></button>
+							<option value="None" selected>
+								<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: transparent"></span>
+								<span data-term-kind="seal-color" data-term-label="None"></span>
+							</option>
+							<option value="Gold">
+								<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-gold)"></span>
+								<span data-term-kind="seal-color" data-term-label="Gold"></span>
+							</option>
+							<option value="Red">
+								<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-red)"></span>
+								<span data-term-kind="seal-color" data-term-label="Red"></span>
+							</option>
+							<option value="Blue">
+								<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-blue)"></span>
+								<span data-term-kind="seal-color" data-term-label="Blue"></span>
+							</option>
+							<option value="Purple">
+								<span aria-hidden="true" class="pc-seal-orb" style="--seal-color: var(--c-seal-purple)"></span>
+								<span data-term-kind="seal-color" data-term-label="Purple"></span>
+							</option>
+						</select>
+					</label>
+				</div>
+
+				<button
+					class="button --icon pc-remove-button"
+					type="button"
+					@click="${() => this.remove()}"
+				>
+					<span class="visually-hidden">${t('removeCard')}</span>
+
+					<svg class="icon">
+						<use xlink:href="#trash-icon"></use>
+					</svg>
+				</button>
 			</div>
 		`
 	}
@@ -613,6 +854,16 @@ export class PlayingCard extends MovableCard {
 			count: this.count,
 		})
 	}
+}
+
+function isButton (event: Event): boolean {
+	const target = event.target
+	return target instanceof Element && target.closest('button') !== null
+}
+
+function isRemoveButton (event: Event): boolean {
+	const target = event.target
+	return target instanceof Element && target.closest('.pc-remove-button') !== null
 }
 
 function isInteractive (event: Event): boolean {
