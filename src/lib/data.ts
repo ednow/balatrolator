@@ -1,6 +1,7 @@
 import { balanceMultWithLuck } from './balanceMultWithLuck.ts'
 import { flush, nOfAKind, straight, twoPair } from './getHand.ts'
 import { isFaceCard, isRank, isSuit } from './cards.ts'
+import { getJokerSellValue } from './jokerSellValue.ts'
 import type { BaseScore, BlindName, Card, DeckName, Edition, Enhancement, HandName, JokerDefinition, JokerEdition, JokerName, Luck, Rank, Seal, Suit } from './types.ts'
 import { resolveJoker } from './resolveJokers.ts'
 
@@ -1049,11 +1050,12 @@ export const JOKER_DEFINITIONS: Record<JokerName, JokerDefinition> = {
 	},
 	'Swashbuckler': {
 		rarity: 'common',
-		hasPlusMultiplierInput: true,
-		plusMultiplierStep: 1,
-		effect ({ score, trigger }) {
+		effect ({ state, score, trigger }) {
+			const sellValue = state.jokers.reduce((total, joker) => {
+				return joker === this ? total : total + getJokerSellValue(joker)
+			}, 0)
 			score.push({
-				multiplier: ['+', this.plusMultiplier],
+				multiplier: ['+', sellValue],
 				phase: 'jokers',
 				joker: this,
 				trigger,

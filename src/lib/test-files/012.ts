@@ -15,7 +15,7 @@ export default (message: string): TestCase => {
 				{ name: 'Sixth Sense' },
 				{ name: 'Odd Todd' },
 				{ name: 'Fortune Teller', plusMultiplier: 9 },
-				{ name: 'Swashbuckler', edition: 'Foil', plusMultiplier: 8 },
+				{ name: 'Swashbuckler', edition: 'Foil' },
 				{ name: 'Ceremonial Dagger', plusMultiplier: 6 },
 			],
 		},
@@ -29,9 +29,9 @@ export default (message: string): TestCase => {
 				{ rank: '5', suit: 'Spades', seal: 'Red' },
 			],
 			results: [
-				{ chips: '386', multiplier: '35', score: '13510', formattedScore: '13,510', luck: 'none' },
-				{ chips: '386', multiplier: '35', score: '13510', formattedScore: '13,510', luck: 'average' },
-				{ chips: '386', multiplier: '35', score: '13510', formattedScore: '13,510', luck: 'all' },
+				{ chips: '386', multiplier: '38', score: '14668', formattedScore: '14,668', luck: 'none' },
+				{ chips: '386', multiplier: '38', score: '14668', formattedScore: '14,668', luck: 'average' },
+				{ chips: '386', multiplier: '38', score: '14668', formattedScore: '14,668', luck: 'all' },
 			],
 		},
 	}
