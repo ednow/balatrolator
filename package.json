@@ -26,6 +26,7 @@
 	},
 	"scripts": {
 		"start": "vite",
+		"generate:pinyin": "node scripts/generate-pinyin.ts",
 		"test:node": "vitest run",
 		"test:node:watch": "vitest watch",
 		"test:browser": "playwright test",
@@ -73,6 +74,7 @@
 		"knip": "6.25.0",
 		"lockfile-lint": "5.0.0",
 		"npm-run-all2": "9.0.2",
+		"pinyin-pro": "3.29.5",
 		"playwright": "1.61.1",
 		"typescript": "6.0.3",
 		"typescript-eslint": "8.63.0",
