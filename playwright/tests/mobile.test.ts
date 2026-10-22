@@ -103,12 +103,17 @@ test.describe('Mobile playing cards', () => {
 
 		await page.locator('[data-c-container]').dblclick()
 		const card = page.locator('playing-card').first()
-		await card.locator('.pc-enhancement-input').selectOption('Steel')
+		const enhancement = card.locator('.pc-enhancement-input')
+		await enhancement.selectOption('Steel')
 		await card.locator('.pc-play-toggle input').click()
 
 		await expect(card).not.toHaveClass(/--is-played/)
 		await expect(card).toHaveClass(/--is-held-steel/)
-		await expect(card.locator('.pc-enhancement-input')).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+		await expect(enhancement).toHaveCSS('background-color', 'rgb(253, 216, 104)')
+		await expect(enhancement).toHaveCSS('border-top-color', 'rgb(202, 152, 2)')
+		await expect(enhancement).toHaveCSS('color', 'rgb(17, 17, 17)')
+		await expect(card).toHaveCSS('opacity', '1')
+		await expect(card.locator('.pc-modifier:has(.pc-enhancement-input)')).toHaveCSS('z-index', '5')
 
 		await card.locator('.pc-play-toggle input').click()
 
@@ -116,9 +121,10 @@ test.describe('Mobile playing cards', () => {
 		await expect(card).not.toHaveClass(/--is-held-steel/)
 
 		await card.locator('.pc-play-toggle input').click()
-		await card.locator('.pc-enhancement-input').selectOption('None')
+		await enhancement.selectOption('None')
 
 		await expect(card).not.toHaveClass(/--is-held-steel/)
+		await expect(card).toHaveCSS('opacity', '0.55')
 	})
 
 	test('reorder cards via touch drag without toggling their played state', async ({ page }) => {

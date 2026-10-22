@@ -106,12 +106,23 @@ const lightCss = /*css*/`
 		opacity: 0.55;
 	}
 
-	playing-card.--is-held-steel .pc-enhancement-input {
-		color: var(--c-blue-dark);
-		border-color: var(--c-blue-dark);
-		background-color: var(--c-white);
-		font-weight: bold;
-		box-shadow: 0 0 0 2px var(--c-blue-dark);
+	playing-card.--is-held-steel {
+		opacity: 1;
+	}
+
+	playing-card.--is-held-steel::after {
+		content: '';
+		position: absolute;
+		z-index: 4;
+		inset: 0;
+		border-radius: inherit;
+		background-color: hsl(249 10% 95% / 45%);
+		pointer-events: none;
+	}
+
+	playing-card.--is-held-steel .pc-modifier:has(.pc-enhancement-input) {
+		position: relative;
+		z-index: 5;
 	}
 
 	.pc-play-toggle {
