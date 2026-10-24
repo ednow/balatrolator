@@ -393,3 +393,29 @@ test.describe('Mobile jokers', () => {
 		await expect(joker).toHaveCSS('opacity', '1')
 	})
 })
+
+test.describe('Mobile clearing', () => {
+	test('opens the clear options via long press', async ({ page }) => {
+		await page.goto('/')
+
+		await page.locator('[data-c-container]').dblclick()
+		await expect(page.locator('playing-card')).toHaveCount(1)
+
+		const clearButton = page.getByRole('button', { name: /^Clear$/ })
+		const box = await clearButton.boundingBox()
+		const client = await page.context().newCDPSession(page)
+		await client.send('Input.dispatchTouchEvent', {
+			type: 'touchStart',
+			touchPoints: [{ x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 }],
+		})
+		const dialog = page.getByRole('dialog')
+		await expect(dialog).toBeVisible()
+		await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+		await client.detach()
+
+		await dialog.getByRole('button', { name: /^Hand$/ }).click()
+
+		await expect(dialog).toBeHidden()
+		await expect(page.locator('playing-card')).toHaveCount(0)
+	})
+})

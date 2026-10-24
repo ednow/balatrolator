@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 test.describe('Round data', () => {
 	test('continuously updates URL with current state', async ({ page }) => {
@@ -454,5 +454,54 @@ test.describe('Wide desktop layout', () => {
 			return element.scrollHeight - element.clientHeight
 		})
 		expect(overflow).toBe(0)
+	})
+})
+
+test.describe('Clearing data', () => {
+	async function longPressClear (page: Page) {
+		const clearButton = page.getByRole('button', { name: /^Clear$/ })
+		const box = await clearButton.boundingBox()
+		await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2)
+		await page.mouse.down()
+
+		const dialog = page.getByRole('dialog')
+		await expect(dialog).toBeVisible()
+		await page.mouse.up()
+
+		return dialog
+	}
+
+	test('lets long-pressing Clear choose which data to clear', async ({ page }) => {
+		await page.goto('/')
+
+		const hands = page.getByRole('spinbutton', { name: /^Hands$/ })
+		await hands.fill('3')
+		await hands.blur()
+
+		const level = page.locator('hand-level-card').first().locator('.hlc-level-input')
+		await level.fill('3')
+		await level.blur()
+
+		await page.locator('[data-c-container]').dblclick()
+		await expect(page.locator('playing-card')).toHaveCount(1)
+
+		let dialog = await longPressClear(page)
+		await dialog.getByRole('button', { name: /^Levels$/ }).click()
+
+		await expect(page.getByRole('spinbutton', { name: /^Hands$/ })).toHaveValue('3')
+		await expect(page.locator('hand-level-card').first().locator('.hlc-level-input')).toHaveValue('1')
+		await expect(page.locator('playing-card')).toHaveCount(1)
+
+		dialog = await longPressClear(page)
+		await dialog.getByRole('button', { name: /^Hand$/ }).click()
+
+		await expect(page.locator('playing-card')).toHaveCount(0)
+		await expect(page.getByRole('spinbutton', { name: /^Hands$/ })).toHaveValue('3')
+
+		dialog = await longPressClear(page)
+		await dialog.getByRole('button', { name: /^Round data$/ }).click()
+
+		await expect(page.getByRole('spinbutton', { name: /^Hands$/ })).toHaveValue('0')
+		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
 	})
 })

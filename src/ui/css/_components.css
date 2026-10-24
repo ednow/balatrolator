@@ -150,6 +150,22 @@ html:not(.mobile-ui) .main-content > .stack > .form {
 	padding-inline: 0.45rem;
 }
 
+[data-sc-reset-button] {
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+
+.reset-modal__options {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.reset-modal__options .button {
+	justify-content: center;
+}
+
 .score-sections {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);

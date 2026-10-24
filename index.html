@@ -455,6 +455,30 @@
 		</div>
 	</dialog>
 
+	<dialog id="reset-modal" class="panel" aria-labelledby="reset-modal-heading">
+		<div class="stack">
+			<header>
+				<div class="action-list">
+					<h2 id="reset-modal-heading" data-i18n="resetModalHeading">清空哪些数据？</h2>
+
+					<button class="button --icon push-inline-start" type="button" data-modal-close-button>
+						<span class="visually-hidden" data-i18n="close">关闭</span>
+
+						<svg class="icon">
+							<use xlink:href="#close-icon"></use>
+						</svg>
+					</button>
+				</div>
+			</header>
+
+			<div class="reset-modal__options">
+				<button class="button" type="button" data-reset-target="cards" data-i18n="cards">手牌</button>
+				<button class="button" type="button" data-reset-target="levels" data-i18n="levels">等级</button>
+				<button class="button" type="button" data-reset-target="round" data-i18n="roundData">回合数据</button>
+			</div>
+		</div>
+	</dialog>
+
 	<dialog id="sc-log-modal" class="log-modal" closedby="any" aria-labelledby="sc-log-modal-heading">
 		<div class="log-modal__header">
 			<h2 id="sc-log-modal-heading" data-i18n="log">记录</h2>

@@ -429,10 +429,130 @@ async function copyCurrentStateDescription () {
 	}
 }
 
-for (const resetButton of document.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
-	resetButton.addEventListener('click', () => {
+const RESET_LONG_PRESS_MS = 500
+const RESET_LONG_PRESS_TOLERANCE_PX = 10
+
+type ResetTarget = 'cards' | 'levels' | 'round'
+
+const resetModal = document.querySelector<HTMLDialogElement>('#reset-modal')!
+
+function resetState (target: ResetTarget) {
+	const state = readStateFromUi()
+	const initialState: InitialState = {
+		hands: state.hands,
+		discards: state.discards,
+		money: state.money,
+		blind: state.blind,
+		deck: state.deck,
+		observatory: state.observatory,
+		handLevels: state.handLevels,
+		jokers: state.jokers,
+		jokerSlots: state.jokerSlots,
+		cards: state.cards,
+	}
+
+	switch (target) {
+		case 'cards':
+			initialState.cards = []
+			break
+		case 'levels':
+			initialState.handLevels = {}
+			break
+		case 'round':
+			initialState.hands = 0
+			initialState.discards = 0
+			initialState.money = 0
+			initialState.blind = undefined
+			initialState.deck = undefined
+			initialState.jokerSlots = undefined
+			initialState.observatory = {}
+			break
+	}
+
+	populateUiWithState(getState(initialState))
+}
+
+for (const button of resetModal.querySelectorAll<HTMLButtonElement>('[data-reset-target]')) {
+	button.addEventListener('click', () => {
+		const target = button.dataset.resetTarget
+		if (target === 'cards' || target === 'levels' || target === 'round') {
+			resetModal.close()
+			resetState(target)
+		}
+	})
+}
+
+function setupResetButton (button: HTMLButtonElement) {
+	let longPressTimer: ReturnType<typeof setTimeout> | undefined
+	let pressPointerId: number | undefined
+	let pressStartX = 0
+	let pressStartY = 0
+	let suppressClick = false
+
+	function cancelLongPress () {
+		if (longPressTimer !== undefined) {
+			clearTimeout(longPressTimer)
+			longPressTimer = undefined
+		}
+
+		pressPointerId = undefined
+	}
+
+	button.addEventListener('pointerdown', (event) => {
+		if (event.pointerType === 'mouse' && event.button !== 0) {
+			return
+		}
+
+		suppressClick = false
+		pressPointerId = event.pointerId
+		pressStartX = event.clientX
+		pressStartY = event.clientY
+
+		if (longPressTimer !== undefined) {
+			clearTimeout(longPressTimer)
+		}
+
+		longPressTimer = setTimeout(() => {
+			longPressTimer = undefined
+			suppressClick = true
+			if (!resetModal.open) {
+				resetModal.showModal()
+			}
+		}, RESET_LONG_PRESS_MS)
+	})
+
+	button.addEventListener('pointermove', (event) => {
+		if (event.pointerId !== pressPointerId) {
+			return
+		}
+
+		if (Math.hypot(event.clientX - pressStartX, event.clientY - pressStartY) > RESET_LONG_PRESS_TOLERANCE_PX) {
+			cancelLongPress()
+		}
+	})
+
+	button.addEventListener('pointerup', cancelLongPress)
+	button.addEventListener('pointercancel', cancelLongPress)
+	button.addEventListener('pointerleave', cancelLongPress)
+	button.addEventListener('contextmenu', (event) => event.preventDefault())
+
+	resetModal.addEventListener('close', () => {
+		suppressClick = false
+	})
+
+	button.addEventListener('click', (event) => {
+		if (suppressClick) {
+			suppressClick = false
+			event.preventDefault()
+			return
+		}
+
 		populateUiWithState(getState({}))
 	})
+}
+
+for (const resetButton of document.querySelectorAll<HTMLButtonElement>('[data-sc-reset-button]')) {
+	setupResetButton(resetButton)
 }
 
 const saveRowTemplate = document.querySelector<HTMLTemplateElement>('template#save-row')!
