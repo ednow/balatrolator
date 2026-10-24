@@ -12,6 +12,15 @@ async function touchDrag (page: Page, from: { x: number, y: number }, to: { x: n
 	await client.detach()
 }
 
+async function touchDoubleTap (page: Page, point: { x: number, y: number }) {
+	const client = await page.context().newCDPSession(page)
+	for (let index = 0; index < 2; index++) {
+		await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+		await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+	}
+	await client.detach()
+}
+
 function groupRowsByTop (boxes: { top: number }[]): number[][] {
 	const rows: number[][] = []
 	for (const [index, box] of boxes.entries()) {
@@ -156,7 +165,7 @@ test.describe('Mobile playing cards', () => {
 
 		const container = page.locator('[data-c-container]')
 		for (let index = 0; index < 6; index++) {
-			await container.dispatchEvent('dblclick')
+			await container.dispatchEvent('dblclick', { bubbles: true })
 		}
 
 		const cards = page.locator('playing-card')
@@ -200,7 +209,7 @@ test.describe('Mobile playing cards', () => {
 
 		const container = page.locator('[data-c-container]')
 		for (let index = 0; index < 6; index++) {
-			await container.dispatchEvent('dblclick')
+			await container.dispatchEvent('dblclick', { bubbles: true })
 		}
 
 		const cards = page.locator('playing-card')
@@ -236,7 +245,7 @@ test.describe('Mobile playing cards', () => {
 			await page.goto(EMPTY_STATE_URL)
 
 			const container = page.locator('[data-c-container]')
-			await Promise.all(ranks.map(() => container.dispatchEvent('dblclick')))
+			await Promise.all(ranks.map(() => container.dispatchEvent('dblclick', { bubbles: true })))
 
 			const cards = page.locator('playing-card')
 			for (const [index, rank] of ranks.entries()) {
@@ -303,6 +312,16 @@ test.describe('Mobile playing cards', () => {
 })
 
 test.describe('Mobile jokers', () => {
+	test('add a joker by double tapping anywhere on the panel', async ({ page }) => {
+		await page.goto('/')
+
+		const panel = page.locator('.form__jokers.panel')
+		const box = (await panel.boundingBox())!
+		await touchDoubleTap(page, { x: box.x + 5, y: box.y + box.height / 2 })
+
+		await expect(page.locator('joker-card')).toHaveCount(1)
+	})
+
 	test('remove a joker via long press', async ({ page }) => {
 		await page.goto('/')
 

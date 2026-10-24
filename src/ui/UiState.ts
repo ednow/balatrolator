@@ -286,26 +286,88 @@ const jokerSlotsInput = form.querySelector<HTMLInputElement>('[name="jokerSlots"
 const handLevelContainer = form.querySelector<HTMLElement>('[data-h-container]')!
 
 const jokerContainer = form.querySelector<HTMLElement>('[data-j-container]')!
+const playingCardContainer = form.querySelector<HTMLElement>('[data-c-container]')!
+
+const DOUBLE_TAP_DELAY_MS = 400
+const DOUBLE_TAP_DISTANCE_PX = 30
+const TAP_MOVE_TOLERANCE_PX = 10
+
 function isCardListBlankAreaClick (event: Event) {
-	return !(event.target as Element).closest('joker-card, playing-card')
+	const target = event.target
+	return !(target instanceof Element) || target.closest('joker-card, playing-card') === null
 }
 
-jokerContainer.addEventListener('dblclick', (event) => {
-	if (!isCardListBlankAreaClick(event)) {
-		return
-	}
+// A double tap isn’t guaranteed to dispatch `dblclick` (notably for touch input in Safari), so taps are detected manually via pointer events.
+function enableDoubleClickAdd (panel: HTMLElement, addCard: () => void) {
+	let lastTap: { x: number, y: number, timestamp: number } | undefined
+	let press: { pointerId: number, x: number, y: number, onBlankArea: boolean } | undefined
+	let lastAddTimestamp = -Infinity
 
-	addJoker()
-})
+	panel.addEventListener('dblclick', (event) => {
+		// Taps are handled below; the browser may still dispatch a `dblclick` for the same taps afterwards.
+		if (event.timeStamp - lastAddTimestamp < 200 || !isCardListBlankAreaClick(event)) {
+			return
+		}
 
-const playingCardContainer = form.querySelector<HTMLElement>('[data-c-container]')!
-playingCardContainer.addEventListener('dblclick', (event) => {
-	if (!isCardListBlankAreaClick(event)) {
-		return
-	}
+		addCard()
+	})
 
-	addPlayingCard()
-})
+	panel.addEventListener('pointerdown', (event) => {
+		if (!event.isPrimary || event.button !== 0) {
+			return
+		}
+
+		press = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, onBlankArea: isCardListBlankAreaClick(event) }
+	})
+
+	panel.addEventListener('pointermove', (event) => {
+		if (press === undefined || event.pointerId !== press.pointerId) {
+			return
+		}
+
+		if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > TAP_MOVE_TOLERANCE_PX) {
+			press = undefined
+			lastTap = undefined
+		}
+	})
+
+	panel.addEventListener('pointerup', (event) => {
+		if (press === undefined || event.pointerId !== press.pointerId) {
+			return
+		}
+
+		const moved = Math.hypot(event.clientX - press.x, event.clientY - press.y) > TAP_MOVE_TOLERANCE_PX
+		const wasTap = !moved && press.onBlankArea && isCardListBlankAreaClick(event)
+		press = undefined
+		if (!wasTap) {
+			lastTap = undefined
+			return
+		}
+
+		const timestamp = event.timeStamp
+		if (
+			lastTap !== undefined &&
+			timestamp - lastTap.timestamp <= DOUBLE_TAP_DELAY_MS &&
+			Math.hypot(event.clientX - lastTap.x, event.clientY - lastTap.y) <= DOUBLE_TAP_DISTANCE_PX
+		) {
+			lastTap = undefined
+			lastAddTimestamp = timestamp
+			addCard()
+			return
+		}
+
+		lastTap = { x: event.clientX, y: event.clientY, timestamp }
+	})
+
+	panel.addEventListener('pointercancel', () => {
+		press = undefined
+		lastTap = undefined
+	})
+}
+
+// The whole panel counts as the drop zone so that the padding around the card list responds as well.
+enableDoubleClickAdd(jokerContainer.closest<HTMLElement>('.panel')!, addJoker)
+enableDoubleClickAdd(playingCardContainer.closest<HTMLElement>('.panel')!, addPlayingCard)
 
 const scoreCardContainer = form.querySelector<HTMLElement>('[data-sc-container]')!
 const playedHandEl = form.querySelector<HTMLElement>('[data-sc-played-hand]')!
