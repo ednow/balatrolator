@@ -10,6 +10,7 @@ const TESTS_TIMEOUT_MS = 600_000
 const DEPLOY_TIMEOUT_MS = 900_000
 const MAX_COMMIT_AGE_MS = 20 * 60_000
 const LOCK_STALE_MS = 35 * 60_000
+const MAX_AUTOFIX_ATTEMPTS = 3
 const projectDir = process.env.QODER_PROJECT_DIR || process.cwd()
 
 function sh(command, args) {
@@ -45,6 +46,27 @@ function statePaths(sha) {
 function log(line) {
 	try {
 		fs.appendFileSync(path.join(gitDirPath(), 'qoder-auto-commit.log'), `[${new Date().toISOString()}] ${line}\n`)
+	} catch {}
+}
+
+function failureStreakPath() {
+	return path.join(gitDirPath(), 'qoder-tests-failed-streak')
+}
+
+function incrementFailureStreak() {
+	try {
+		const current = Number(fs.readFileSync(failureStreakPath(), 'utf8')) || 0
+		const next = current + 1
+		fs.writeFileSync(failureStreakPath(), String(next))
+		return next
+	} catch {
+		return 1
+	}
+}
+
+function resetFailureStreak() {
+	try {
+		fs.rmSync(failureStreakPath(), { force: true })
 	} catch {}
 }
 
@@ -248,10 +270,24 @@ async function main() {
 	if (tests.status !== 'completed') {
 		report(`提交 ${shortSha} 的 Tests 在 ${TESTS_TIMEOUT_MS / 60_000} 分钟内未完成（status=${tests.status}）；${tests.html_url}`, 'tests-timeout')
 	}
+	if (tests.conclusion === 'success') {
+		resetFailureStreak()
+	}
 	if (tests.conclusion !== 'success') {
 		const failed = await failedJobs(tests.id)
 		const detail = failed.length ? failed.join('；') : `conclusion=${tests.conclusion}`
-		report(`提交 ${shortSha} 已推送，但 Tests 失败：${detail}；${tests.html_url}。请在当前会话修复后重新提交。`, 'tests-failed')
+		const attempts = incrementFailureStreak()
+		const fixInstructions = attempts < MAX_AUTOFIX_ATTEMPTS
+			? '请立即用 Agent 工具起一个子 agent 自动修复，并严格限制范围：'
+				+ '只能修改测试文件（playwright/tests/**、src/**/*.test.ts、src/lib/test-files/**），'
+				+ '禁止修改 src/ 下的实现代码、配置、依赖或工作流。'
+				+ '让它先本地复现并跑通相关测试；若定位为产品代码缺陷而非测试过期，停止修改并报告，不要改源码。'
+				+ '修复后不要自行提交，结束回合由自动提交钩子提交并推送。'
+			: `已连续 ${attempts} 次失败，停止自动修复；请人工检查测试或实现代码后再提交。`
+		report(
+			`提交 ${shortSha} 已推送，但 Tests 失败：${detail}；${tests.html_url}。连续第 ${attempts} 次失败。${fixInstructions}`,
+			'tests-failed',
+		)
 	}
 
 	const deploy = await waitForRun('deploy.yml', DEPLOY_TIMEOUT_MS)
