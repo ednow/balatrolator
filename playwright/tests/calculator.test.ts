@@ -30,7 +30,7 @@ test.describe('Round data', () => {
 		const blindOptions = blind.getByRole('listbox', { name: /^Blinds$/ })
 		await expect(blindOptions.getByRole('option')).toHaveCount(30)
 		await blindInput.fill('w')
-		await expect(blindOptions.getByRole('option')).toHaveCount(4)
+		await expect(blindOptions.getByRole('option')).toHaveCount(7)
 		await page.keyboard.press('ArrowDown')
 		await page.keyboard.press('Enter')
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '1-2-3-6-1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
@@ -43,7 +43,7 @@ test.describe('Round data', () => {
 		const deckOptions = deck.getByRole('listbox', { name: /^Decks$/ })
 		await expect(deckOptions.getByRole('option')).toHaveCount(16)
 		await deckInput.fill('n')
-		await expect(deckOptions.getByRole('option')).toHaveCount(6)
+		await expect(deckOptions.getByRole('option')).toHaveCount(13)
 		await page.keyboard.press('Enter')
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '1-2-3-6-1-6-5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
 
@@ -51,6 +51,28 @@ test.describe('Round data', () => {
 		await jokerSlots.fill('4')
 		await jokerSlots.blur()
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '1-2-3-6-1-6-4-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
+	})
+
+	test('searches blinds and decks by pinyin initials', async ({ page }) => {
+		await page.goto('/')
+
+		const blind = page.locator('[name="blindName"]')
+		await blind.getByRole('button', { name: /^Show blind options$/ }).click()
+		const blindInput = blind.getByRole('combobox', { name: /^Filter blinds$/ })
+		await expect(blindInput).toBeFocused()
+		const blindOptions = blind.getByRole('listbox', { name: /^Blinds$/ })
+		await blindInput.fill('fhzx')
+		await expect(blindOptions.getByRole('option')).toHaveText(['Crimson Heart'])
+
+		await page.keyboard.press('Escape')
+
+		const deck = page.locator('[name="deck"]')
+		await deck.getByRole('button', { name: /^Show deck options$/ }).click()
+		const deckInput = deck.getByRole('combobox', { name: /^Filter decks$/ })
+		await expect(deckInput).toBeFocused()
+		const deckOptions = deck.getByRole('listbox', { name: /^Decks$/ })
+		await deckInput.fill('dlzpz')
+		await expect(deckOptions.getByRole('option')).toHaveText(['Plasma Deck'])
 	})
 })
 
