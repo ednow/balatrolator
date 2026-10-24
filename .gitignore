@@ -8,3 +8,7 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/playwright.local.config.ts
+
+# Qoder local state
+/.qoder/tmp/
