@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git restore --staged:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git push --mirror:*)",
+      "Bash(git push --delete:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "name": "auto-commit-push",
+            "prompt": "你是本仓库的自动提交钩子。当前工作目录就是项目根目录，直接执行 git 命令，不要使用 cd。只做提交和推送，禁止修改、格式化、删除源码，禁止 force push。\n\nHook 事件 JSON：\n$ARGUMENTS\n\n步骤：\n1. 执行 git status --porcelain。输出为空则返回 {\"ok\": true, \"reason\": \"skip: clean working tree\"}。\n2. 执行 git add -A（不要加 -f，保持 .gitignore 生效）。检查 git diff --cached --name-only：若出现 .env、*.pem、*.key、credentials 等敏感文件，先 git restore --staged <path> 取消暂存并在结果中提示。若暂存区为空则返回 skip。\n3. 查看 git diff --cached --stat、git diff --cached（过大时只看关键文件）和 git log --oneline -12。\n4. 根据 diff 和 last_assistant_message 生成符合本仓库风格的提交信息：首行是 `<type>: <中文简述>`，type 用 feat/fix/refactor/test/docs/chore/perf 之一，scope 通常省略；需要时再加 -m 补充中文正文。不要写与改动无关的内容（例如 hook、自动提交、AI）。\n5. 用 git commit -m \"<提交信息>\" 提交；若 commitlint 报错，按报错修正后重试一次。\n6. 提交成功后执行 git push；若提示没有 upstream，执行 git push -u origin HEAD。禁止 --force。\n7. 无论成功失败都只返回 {\"ok\": true, \"reason\": \"<结果摘要>\"}，避免阻塞主会话；后台 watcher 会把 CI/Deploy 结果反馈给主会话。\n\n约束：不改写历史；push 失败时保留本地提交。",
+            "tools": ["Bash", "Read"],
+            "maxTurns": 20,
+            "timeout": 240,
+            "statusMessage": "正在生成提交信息并推送"
+          },
+          {
+            "type": "command",
+            "name": "watch-ci",
+            "command": "node",
+            "args": ["${QODER_PROJECT_DIR}/.qoder/hooks/watch-ci.mjs"],
+            "timeout": 2100,
+            "asyncRewake": true,
+            "rewakeMessage": "[auto-commit] ",
+            "rewakeSummary": "自动提交 / CI / Deploy 状态",
+            "statusMessage": "等待 GitHub Actions 与部署结果"
+          }
+        ]
+      }
+    ]
+  }
+}
