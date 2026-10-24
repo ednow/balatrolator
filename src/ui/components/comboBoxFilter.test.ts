@@ -52,6 +52,11 @@ describe('matchScore', () => {
 		expect(matchScore('Seeing Double', 'cy', true)).toBeGreaterThan(0)
 	})
 
+	it('matches pinyin for deck and blind names', () => {
+		expect(matchScore('Plasma Deck', 'dlzpz', true)).toBeGreaterThan(0)
+		expect(matchScore('Big Blind', 'dmz', true)).toBeGreaterThan(0)
+	})
+
 	it('only matches pinyin when enabled', () => {
 		expect(matchScore('Cerulean Bell', 'w')).toBe(0)
 		expect(matchScore('Cerulean Bell', 'w', true)).toBeGreaterThan(0)

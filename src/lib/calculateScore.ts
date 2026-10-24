@@ -47,11 +47,12 @@ export function calculateScore (
 	const results = LUCKS.map<Result>((luck) => {
 		const scores = variants.map((variant) => getScoreOfVariant(variant, luck, options?.formatScoreValue))
 		const index = pickVariantIndex(scores, luck)
-		const { chips, multiplier, score, log } = scores[index]!
+		const { chips, multiplier, balanced, score, log } = scores[index]!
 
 		return {
 			chips,
 			multiplier,
+			balanced,
 			score,
 			formattedScore: formatScore(score),
 			luck,

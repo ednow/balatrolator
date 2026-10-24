@@ -166,6 +166,11 @@ export type Luck = 'none' | 'average' | 'all'
 export interface Result {
 	chips: string
 	multiplier: string
+	/** Final chips and mult after the Plasma Deck balancing step. */
+	balanced?: {
+		chips: string
+		multiplier: string
+	}
 	score: string
 	formattedScore: string
 	luck: Luck

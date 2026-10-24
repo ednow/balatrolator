@@ -1032,8 +1032,12 @@ function appendScoreCard (result: Result) {
 	formattedScoreEl.textContent = result.formattedScore
 
 	const scoreEl = fragment.querySelector<HTMLElement>('[data-sc-score]')!
-	const equation = `${result.chips}×${result.multiplier}`
-	scoreEl.textContent = equation + '\n= ' + result.score
+	const equations = [`${result.chips}×${result.multiplier}`]
+	if (result.balanced && (result.balanced.chips !== result.chips || result.balanced.multiplier !== result.multiplier)) {
+		equations.push(`${result.balanced.chips}×${result.balanced.multiplier}`)
+	}
+	equations.push(result.score)
+	scoreEl.textContent = equations.join('\n= ')
 
 	const logEl = fragment.querySelector<HTMLElement>('[data-sc-card-log]')!
 	logEl.replaceChildren(renderScoreLog([result]))

@@ -17,6 +17,10 @@ export function doBigMath (
 ): {
 	chips: string
 	multiplier: string
+	balanced?: {
+		chips: string
+		multiplier: string
+	}
 	score: string
 	log: string[]
 } {
@@ -43,8 +47,14 @@ export function doBigMath (
 	}
 
 	let actualScore
+	let balanced: { chips: string, multiplier: string } | undefined
 	if (deck === 'Plasma Deck') {
-		actualScore = chips.add(multiplier).div(2).pow(2)
+		const balancedValue = chips.add(multiplier).div(2)
+		balanced = {
+			chips: balancedValue.toString(),
+			multiplier: balancedValue.toString(),
+		}
+		actualScore = balancedValue.pow(2)
 	} else {
 		actualScore = chips.mul(multiplier)
 	}
@@ -54,6 +64,7 @@ export function doBigMath (
 	return {
 		chips: chips.toString(),
 		multiplier: multiplier.toString(),
+		balanced,
 		score: score.toString(),
 		log,
 	}
