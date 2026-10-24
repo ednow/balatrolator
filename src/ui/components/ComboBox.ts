@@ -1,7 +1,7 @@
 import { html, render } from 'lit-html'
 
 import { LANGUAGE_CHANGE_EVENT, t, term } from '#ui/i18n.ts'
-import { matchesOption } from './comboBoxFilter.ts'
+import { filterOptions } from './comboBoxFilter.ts'
 import { FormAssociatedElement } from './FormAssociatedElement.ts'
 import { getShortcutKey } from '../getShortcutKey.ts'
 
@@ -184,7 +184,7 @@ export class ComboBox extends FormAssociatedElement {
 	}
 
 	#refilterOptions = () => {
-		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, this.#query, this.#matchPinyin))
+		this.#_filteredOptions = filterOptions(this.#options, this.#query, this.#matchPinyin)
 	}
 
 	formDisabledCallback (disabled: boolean) {
@@ -283,7 +283,7 @@ export class ComboBox extends FormAssociatedElement {
 
 	set query (query) {
 		this.#query = query
-		this.#_filteredOptions = this.#options.filter((option) => matchesOption(option, query, this.#matchPinyin))
+		this.#_filteredOptions = filterOptions(this.#options, query, this.#matchPinyin)
 
 		this.queueRender()
 	}
@@ -298,7 +298,7 @@ export class ComboBox extends FormAssociatedElement {
 
 	set #options (options) {
 		this.#_options = options
-		this.#_filteredOptions = options.filter((option) => matchesOption(option, this.query, this.#matchPinyin))
+		this.#_filteredOptions = filterOptions(options, this.query, this.#matchPinyin)
 
 		this.queueRender()
 	}
