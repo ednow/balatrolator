@@ -44,7 +44,6 @@ test.describe('Round data', () => {
 		await expect(deckOptions.getByRole('option')).toHaveCount(16)
 		await deckInput.fill('n')
 		await expect(deckOptions.getByRole('option')).toHaveCount(6)
-		await page.keyboard.press('ArrowDown')
 		await page.keyboard.press('Enter')
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '1-2-3-6-1-6-5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')
 
@@ -140,7 +139,6 @@ test.describe('Jokers', () => {
 		await expect(nameOptions.getByRole('option')).toHaveCount(150)
 		await nameInput.fill('cr')
 		await expect(nameOptions.getByRole('option')).toHaveCount(5)
-		await page.keyboard.press('ArrowDown')
 		await page.keyboard.press('Enter')
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*-14*******1*-')
 
