@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import playwright from 'eslint-plugin-playwright'
 
 export default defineConfig(
-	globalIgnores(['coverage/', 'dist/', '**/playwright-report/']),
+	globalIgnores(['coverage/', 'dist/', '**/playwright-report/', '.qoder/']),
 
 	js.configs.recommended,
 	tseslint.configs.strict,
