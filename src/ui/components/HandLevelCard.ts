@@ -2,7 +2,8 @@ import { html } from 'lit-html'
 
 import { getHandBaseScore } from '#lib/getState.ts'
 import type { HandLevel, HandName } from '#lib/types.ts'
-import { t, term } from '#ui/i18n.ts'
+import { getLang, t, term } from '#ui/i18n.ts'
+import { MOCK_HAND_EVENT } from '#ui/mockHand.ts'
 import { BaseElement } from './BaseElement.ts'
 
 const lightCss = /*css*/`
@@ -47,9 +48,21 @@ const lightCss = /*css*/`
 	}
 
 	.hlc-base-score {
+		padding: 0;
+		border: 0;
+		border-radius: 0.25rem;
+		background: none;
+		color: inherit;
+		font: inherit;
 		font-size: 0.9em;
 		font-variant-numeric: tabular-nums;
 		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.hlc-base-score:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
 	}
 
 	.hlc-chips {
@@ -168,9 +181,21 @@ export class HandLevelCard extends BaseElement {
 					<div class="hlc-heading">
 						<span class="hlc-hand-name">${term(this.handName)}</span>
 
-						<span class="hlc-base-score">
+						<button
+							class="hlc-base-score"
+							type="button"
+							title="${t('mockHand')}"
+							aria-label="${getLang() === 'zh' ? `${t('mockHand')}：${term(this.handName)}` : `${t('mockHand')}: ${term(this.handName)}`}"
+							@click="${() => {
+								this.dispatchEvent(new CustomEvent(MOCK_HAND_EVENT, {
+									bubbles: true,
+									composed: true,
+									detail: { handName: this.handName },
+								}))
+							}}"
+						>
 							<span class="hlc-chips">${chips}</span>×<span class="hlc-mult">${multiplier}</span>
-						</span>
+						</button>
 					</div>
 
 					<div class="input-list">

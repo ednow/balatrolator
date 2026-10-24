@@ -4,7 +4,7 @@ import { formatScoreValueForUi, renderScoreLog, type ScoreLogSection } from './s
 import { initMobileUi, isMobileUi } from './mobileUi.ts'
 import './components/ComboBox.ts'
 
-import { getState } from '#lib/getState.ts'
+import { getCard, getState } from '#lib/getState.ts'
 import { calculateScore } from '#lib/calculateScore.ts'
 import { JOKER_DEFINITIONS, LUCKS } from '#lib/data.ts'
 import type { ComboBox } from './components/ComboBox.ts'
@@ -12,6 +12,7 @@ import { HandLevelCard } from './components/HandLevelCard.ts'
 import { JokerCard } from './components/JokerCard.ts'
 import { PlayingCard } from './components/PlayingCard.ts'
 import { debounce } from './debounce.ts'
+import { MOCK_HAND_EVENT, getMockHandCards } from './mockHand.ts'
 import { readStateFromUrl, saveStateToUrl, WebStorage } from './Storage.ts'
 import { SaveManager } from './SaveManager.ts'
 import type { BlindName, Card, DeckName, HandName, InitialState, Joker, State, Result, InitialJoker, InitialCard, Luck } from '#lib/types.ts'
@@ -287,6 +288,15 @@ const handLevelContainer = form.querySelector<HTMLElement>('[data-h-container]')
 
 const jokerContainer = form.querySelector<HTMLElement>('[data-j-container]')!
 const playingCardContainer = form.querySelector<HTMLElement>('[data-c-container]')!
+
+handLevelContainer.addEventListener(MOCK_HAND_EVENT, (event) => {
+	if (!(event instanceof CustomEvent)) {
+		return
+	}
+
+	const { handName } = event.detail as { handName: HandName }
+	mockHand(handName)
+})
 
 const DOUBLE_TAP_DELAY_MS = 400
 const DOUBLE_TAP_DISTANCE_PX = 30
@@ -1302,3 +1312,16 @@ function addPlayingCard (card?: Card) {
 	el.toggleBlindEffects(blindNameInput.value as BlindName, blindIsActiveCheckbox.checked)
 }
 
+function mockHand (handName: HandName) {
+	for (const el of playingCardContainer.children) {
+		if (el instanceof PlayingCard) {
+			el.played = false
+		}
+	}
+
+	for (const card of getMockHandCards(handName)) {
+		addPlayingCard(getCard(card))
+	}
+
+	calculate()
+}
