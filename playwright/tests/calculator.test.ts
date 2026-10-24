@@ -464,11 +464,11 @@ test.describe('Clearing data', () => {
 		await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2)
 		await page.mouse.down()
 
-		const dialog = page.getByRole('dialog')
-		await expect(dialog).toBeVisible()
+		const menu = page.locator('#reset-menu')
+		await expect(menu).toBeVisible()
 		await page.mouse.up()
 
-		return dialog
+		return menu
 	}
 
 	test('lets long-pressing Clear choose which data to clear', async ({ page }) => {
@@ -485,21 +485,21 @@ test.describe('Clearing data', () => {
 		await page.locator('[data-c-container]').dblclick()
 		await expect(page.locator('playing-card')).toHaveCount(1)
 
-		let dialog = await longPressClear(page)
-		await dialog.getByRole('button', { name: /^Levels$/ }).click()
+		let menu = await longPressClear(page)
+		await menu.getByRole('button', { name: /^Levels$/ }).click()
 
 		await expect(page.getByRole('spinbutton', { name: /^Hands$/ })).toHaveValue('3')
 		await expect(page.locator('hand-level-card').first().locator('.hlc-level-input')).toHaveValue('1')
 		await expect(page.locator('playing-card')).toHaveCount(1)
 
-		dialog = await longPressClear(page)
-		await dialog.getByRole('button', { name: /^Hand$/ }).click()
+		menu = await longPressClear(page)
+		await menu.getByRole('button', { name: /^Hand$/ }).click()
 
 		await expect(page.locator('playing-card')).toHaveCount(0)
 		await expect(page.getByRole('spinbutton', { name: /^Hands$/ })).toHaveValue('3')
 
-		dialog = await longPressClear(page)
-		await dialog.getByRole('button', { name: /^Round data$/ }).click()
+		menu = await longPressClear(page)
+		await menu.getByRole('button', { name: /^Round data$/ }).click()
 
 		await expect(page.getByRole('spinbutton', { name: /^Hands$/ })).toHaveValue('0')
 		await expect(page).toHaveURL((url) => url.searchParams.get('state') === '----1--5-___________-*_*_*_*_*_*_*_*_*_*_*_*--')

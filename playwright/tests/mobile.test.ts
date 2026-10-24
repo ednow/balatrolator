@@ -408,14 +408,14 @@ test.describe('Mobile clearing', () => {
 			type: 'touchStart',
 			touchPoints: [{ x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 }],
 		})
-		const dialog = page.getByRole('dialog')
-		await expect(dialog).toBeVisible()
+		const menu = page.locator('#reset-menu')
+		await expect(menu).toBeVisible()
 		await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
 		await client.detach()
 
-		await dialog.getByRole('button', { name: /^Hand$/ }).click()
+		await menu.getByRole('button', { name: /^Hand$/ }).click()
 
-		await expect(dialog).toBeHidden()
+		await expect(menu).toBeHidden()
 		await expect(page.locator('playing-card')).toHaveCount(0)
 	})
 })

@@ -431,10 +431,47 @@ async function copyCurrentStateDescription () {
 
 const RESET_LONG_PRESS_MS = 500
 const RESET_LONG_PRESS_TOLERANCE_PX = 10
+const RESET_MENU_MARGIN_PX = 8
+const RESET_MENU_GAP_PX = 4
 
 type ResetTarget = 'cards' | 'levels' | 'round'
 
-const resetModal = document.querySelector<HTMLDialogElement>('#reset-modal')!
+const resetMenu = document.querySelector<HTMLElement>('#reset-menu')!
+let resetMenuTrigger: HTMLButtonElement | null = null
+
+function closeResetMenu (restoreFocus = false) {
+	const trigger = resetMenuTrigger
+	resetMenu.hidden = true
+	resetMenuTrigger = null
+
+	if (restoreFocus) {
+		trigger?.focus()
+	}
+}
+
+function openResetMenu (trigger: HTMLButtonElement) {
+	resetMenu.hidden = false
+	resetMenuTrigger = trigger
+
+	const triggerRect = trigger.getBoundingClientRect()
+	const menuRect = resetMenu.getBoundingClientRect()
+	const maxTop = window.innerHeight - RESET_MENU_MARGIN_PX - menuRect.height
+
+	let top = triggerRect.bottom + RESET_MENU_GAP_PX
+	if (top > maxTop) {
+		top = triggerRect.top - RESET_MENU_GAP_PX - menuRect.height
+	}
+
+	const left = Math.min(
+		triggerRect.right - menuRect.width,
+		window.innerWidth - RESET_MENU_MARGIN_PX - menuRect.width,
+	)
+
+	resetMenu.style.top = `${Math.round(Math.max(RESET_MENU_MARGIN_PX, Math.min(top, maxTop)))}px`
+	resetMenu.style.left = `${Math.round(Math.max(RESET_MENU_MARGIN_PX, left))}px`
+
+	resetMenu.querySelector<HTMLButtonElement>('button')?.focus()
+}
 
 function resetState (target: ResetTarget) {
 	const state = readStateFromUi()
@@ -472,15 +509,36 @@ function resetState (target: ResetTarget) {
 	populateUiWithState(getState(initialState))
 }
 
-for (const button of resetModal.querySelectorAll<HTMLButtonElement>('[data-reset-target]')) {
+for (const button of resetMenu.querySelectorAll<HTMLButtonElement>('[data-reset-target]')) {
 	button.addEventListener('click', () => {
 		const target = button.dataset.resetTarget
 		if (target === 'cards' || target === 'levels' || target === 'round') {
-			resetModal.close()
+			closeResetMenu()
 			resetState(target)
 		}
 	})
 }
+
+document.addEventListener('pointerdown', (event) => {
+	if (resetMenu.hidden || !(event.target instanceof Node) || resetMenu.contains(event.target)) {
+		return
+	}
+
+	if (event.target instanceof Element && event.target.closest('[data-sc-reset-button]') !== null) {
+		return
+	}
+
+	closeResetMenu()
+}, true)
+
+document.addEventListener('keydown', (event) => {
+	if (event.key === 'Escape' && !resetMenu.hidden) {
+		closeResetMenu(true)
+	}
+})
+
+window.addEventListener('resize', () => closeResetMenu())
+document.addEventListener('scroll', () => closeResetMenu(), true)
 
 function setupResetButton (button: HTMLButtonElement) {
 	let longPressTimer: ReturnType<typeof setTimeout> | undefined
@@ -515,9 +573,7 @@ function setupResetButton (button: HTMLButtonElement) {
 		longPressTimer = setTimeout(() => {
 			longPressTimer = undefined
 			suppressClick = true
-			if (!resetModal.open) {
-				resetModal.showModal()
-			}
+			openResetMenu(button)
 		}, RESET_LONG_PRESS_MS)
 	})
 
@@ -536,10 +592,6 @@ function setupResetButton (button: HTMLButtonElement) {
 	button.addEventListener('pointerleave', cancelLongPress)
 	button.addEventListener('contextmenu', (event) => event.preventDefault())
 
-	resetModal.addEventListener('close', () => {
-		suppressClick = false
-	})
-
 	button.addEventListener('click', (event) => {
 		if (suppressClick) {
 			suppressClick = false
@@ -547,6 +599,12 @@ function setupResetButton (button: HTMLButtonElement) {
 			return
 		}
 
+		if (resetMenuTrigger === button) {
+			closeResetMenu(true)
+			return
+		}
+
+		closeResetMenu()
 		populateUiWithState(getState({}))
 	})
 }

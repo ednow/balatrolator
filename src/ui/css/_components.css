@@ -156,13 +156,22 @@ html:not(.mobile-ui) .main-content > .stack > .form {
 	-webkit-touch-callout: none;
 }
 
-.reset-modal__options {
+.reset-menu {
+	position: fixed;
+	z-index: 60;
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
+	gap: 0.25rem;
+	min-inline-size: 8rem;
+	max-inline-size: calc(100vw - 1rem);
+	padding: 0.25rem;
+	border: 2px solid var(--c-border);
+	border-radius: 0.5rem;
+	background-color: var(--c-background-light);
+	box-shadow: 0 4px 12px hsl(0 0% 0% / 25%);
 }
 
-.reset-modal__options .button {
+.reset-menu .button {
 	justify-content: center;
 }
 
